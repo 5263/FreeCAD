@@ -21,31 +21,38 @@
  ***************************************************************************/
 
 
-// === Incuding of libs: ============================================================================
 
-#include "../../../Config.h"
-#ifdef FC_OS_WIN32
-#	pragma comment(lib,"TKernel.lib")
-# pragma comment(lib,"TKBRep.lib")
-#	pragma comment(lib,"TKMath.lib")
-#	pragma comment(lib,"TKService.lib")
-#	pragma comment(lib,"TKGeomAlgo.lib")
-#	pragma comment(lib,"TKGeomBase.lib")
-# pragma comment(lib,"TKBool.lib")
-#	pragma comment(lib,"TKG2d.lib")
-#	pragma comment(lib,"TKG3d.lib")
-#	pragma comment(lib,"TKBRep.lib")
-#	pragma comment(lib,"TKTopAlgo.lib")
-#	pragma comment(lib,"TKPrim.lib")
-#	pragma comment(lib,"TKXSBase.lib")
-	// Application Framwork OCAF
-#	pragma comment(lib,"TKCAF.lib")
-#	pragma comment(lib,"TKCDF.lib")
-
-// OpenCasCade Std IO
-#	pragma comment(lib,"TKIGES.lib")
-#	pragma comment(lib,"TKShHealing.lib")
-#	pragma comment(lib,"TKSTEP.lib")
+#ifndef __FeatureImportStep_H__
+#define __FeatureImportStep_H__
 
 
-#endif
+#include <Mod/Part/App/PartFeature.h>
+
+namespace Import
+{
+
+
+  class FeatureImportStep :public Part::PartFeature
+{
+public:
+
+	virtual void InitLabel(const TDF_Label &rcLabel);
+
+//	virtual bool MustExecute(const TFunction_Logbook& log);
+
+	virtual Standard_Integer Execute(TFunction_Logbook& log);
+
+	virtual void Validate(TFunction_Logbook& log);
+
+  /// Returns the Name/Type of the feature
+  virtual const char *Type(void){return "PartImportStep";};
+};
+
+
+
+}
+
+
+
+
+#endif // __FeatureImportStep_H__

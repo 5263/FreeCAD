@@ -35,7 +35,7 @@ class SbVec3f;
 namespace PartGui {
 
 
-class ViewProviderInventorPart:public Gui::ViewProviderInventor
+class AppPartGuiExport ViewProviderInventorPart:public Gui::ViewProviderInventor
 {
 public:
   /**
