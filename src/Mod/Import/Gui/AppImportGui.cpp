@@ -1,4 +1,4 @@
-/** \file AppPart.cpp
+/** \file AppImportGui.cpp
  *  \brief 
  *  \author $Author$
  *  \version $Revision$
@@ -16,6 +16,7 @@
  *   Jürgen Riegel 2002                                                    *
  *                                                                         *
  ***************************************************************************/
+
  
 #include "../../../Config.h"
 #ifdef _PreComp_
@@ -24,10 +25,11 @@
 #endif
 
 #include "../../../App/Application.h"
-
-#include <stdio.h>
-#include <python.h>
 #include "../../../Base/Console.h"
+
+#include "../../../Gui/Application.h"
+
+void CreateCommands(void);
 
 
 /* module functions */
@@ -54,19 +56,42 @@ static struct PyMethodDef hello_methods[] = {
 
 
 
-
 // python intry
 extern "C" {
-void __declspec(dllexport) initPart() {
+void __declspec(dllexport) initImportGui() {
 
-	(void) Py_InitModule("Part", hello_methods);   /* mod name, table ptr */
+	(void) Py_InitModule("ImportGui", hello_methods);   /* mod name, table ptr */
+
+	GetConsole().Log("ImportGui loaded\n");
 
 	GetApplication();
+	ApplicationWindow::Instance;
 
-	GetConsole().Log("AppPart loaded\n");
+	// instanciating the commands
+	CreateCommands();
+
 
 	return;
 }
-
-
 } // extern "C" {
+
+
+
+
+/*
+#include <boost/python/class_builder.hpp>
+namespace python = boost::python;
+
+std::string info() { return "hello, world"; }
+
+
+BOOST_PYTHON_MODULE_INIT(getting_started1)
+{
+    // Create an object representing this extension module.
+    python::module_builder this_module("getting_started1");
+
+    // Add regular functions to the module.
+    this_module.def(info, "Info");
+    //this_module.def(square, "square");
+}
+*/

@@ -1,4 +1,4 @@
-/** \file AppPart.cpp
+/** \file AppImport.cpp
  *  \brief 
  *  \author $Author$
  *  \version $Revision$
@@ -32,21 +32,26 @@
 
 /* module functions */
 static PyObject *                                 /* returns object */
-message(PyObject *self, PyObject *args)           /* self unused in modules */
+Info(PyObject *self, PyObject *args)              /* self unused in modules */
 {                                                 /* args from python call */
-    char *fromPython, result[64];
-    if (! PyArg_Parse(args, "(s)", &fromPython))  /* convert Python -> C */
+	std::string strResult;
+
+    if (! PyArg_ParseTuple(args, ""))			  /* convert Python -> C */
         return NULL;                              /* null=raise exception */
-    else {
-        strcpy(result, "Hello, ");                /* build up C string */
-        strcat(result, fromPython);               /* add passed Python string */
-        return Py_BuildValue("s", result);        /* convert C -> Python */
-    }
+    
+	strResult += "The Import module\n";
+
+    PyBuf bufTemp(strResult.c_str());
+	return Py_BuildValue("s", bufTemp.str);   /* convert C -> Python */
+    
 }
+
+
 
 /* registration table  */
 static struct PyMethodDef hello_methods[] = {
-    {"message", message, 1},       /* method name, C func ptr, always-tuple */
+    {"Info", Info, 1},				/* method name, C func ptr, always-tuple */
+
     {NULL, NULL}                   /* end of table marker */
 };
 
@@ -57,13 +62,13 @@ static struct PyMethodDef hello_methods[] = {
 
 // python intry
 extern "C" {
-void __declspec(dllexport) initPart() {
+void __declspec(dllexport) initImport() {
 
-	(void) Py_InitModule("Part", hello_methods);   /* mod name, table ptr */
+	(void) Py_InitModule("Import", hello_methods);   /* mod name, table ptr */
 
 	GetApplication();
 
-	GetConsole().Log("AppPart loaded\n");
+	GetConsole().Log("Import loaded\n");
 
 	return;
 }
