@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (c) 2002 Jürgen Riegel <juergen.riegel@web.de>              *
+ *   Copyright (c) 2004 Werner Mayer <werner.wm.mayer@gmx.de>              *
  *                                                                         *
  *   This file is part of the FreeCAD CAx development system.              *
  *                                                                         *
@@ -21,45 +21,19 @@
  ***************************************************************************/
 
 
-#include "PreCompiled.h"
+#include <qwidgetplugin.h>
 
-#ifndef _PreComp_
-# include <qdir.h>
-#endif
-
-#include "DlgSettingsMacroImp.h"
-#include "FileDialog.h"
-#include "../App/Application.h"
-
-using namespace Gui::Dialog;
-
-/**
- *  Constructs a DlgSettingsMacroImp which is a child of 'parent', with the 
- *  name 'name' and widget flags set to 'f' 
- */
-DlgSettingsMacroImp::DlgSettingsMacroImp( QWidget* parent,  const char* name, WFlags fl )
-  : DlgSettingsMacro( parent, name, fl )
+class CustomWidgetPlugin : public QWidgetPlugin
 {
-  append(PrefCheckBox_GuiAsComment->getHandler());
-  append(PrefCheckBox_RecordGui   ->getHandler());
-  append(MacroPath                ->getHandler());
+public:
+    CustomWidgetPlugin();
 
-  if ( MacroPath->fileName().isEmpty() )
-  {
-    QDir d(App::GetApplication().GetHomePath());
-    MacroPath->setFileName( d.path() );
-  }
-}
-
-/** 
- *  Destroys the object and frees any allocated resources
- */
-DlgSettingsMacroImp::~DlgSettingsMacroImp()
-{
-  // no need to delete child widgets, Qt does it all for us
-}
-
-
-#include "DlgSettingsMacro.cpp"
-#include "moc_DlgSettingsMacro.cpp"
-#include "moc_DlgSettingsMacroImp.cpp"
+    QStringList keys() const;
+    QWidget* create( const QString &classname, QWidget* parent = 0, const char* name = 0 );
+    QString group( const QString& ) const;
+    QIconSet iconSet( const QString& ) const;
+    QString includeFile( const QString& ) const;
+    QString toolTip( const QString& ) const;
+    QString whatsThis( const QString& ) const;
+    bool isContainer( const QString& ) const;
+};
