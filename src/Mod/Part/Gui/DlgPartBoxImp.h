@@ -1,4 +1,4 @@
-/** \file DlgMacroExecuteImp.cpp
+/** \file DlgPartBoxImp.h
  *  \brief  
  *  \author $Author$
  *  \version $Revision$
@@ -30,70 +30,24 @@
  *   Juergen Riegel 2002                                                   *
  ***************************************************************************/
 
+#ifndef DLGPARTBOXIMP_H
+#define DLGPARTBOXIMP_H
 
-/** Precompiled header stuff
- *  on some compilers the precompiled header option gain significant compile 
- *  time! So every external header (libs and system) should included in 
- *  Precompiled.h. For systems without precompilation the header needed are
- *  included in the else fork.
- */
-#include "../Config.h"
-#ifdef _PreComp_
-#	include "PreCompiled.h"
-#else
-#endif
-#include "DlgMacroExecuteImp.h"
+#include "../../../Gui/Window.h"
+#include "DlgPartBox.h"
 
-/* 
- *  Constructs a DlgMacroExecuteImp which is a child of 'parent', with the 
- *  name 'name' and widget flags set to 'f' 
- *
- *  The dialog will by default be modeless, unless you set 'modal' to
- *  TRUE to construct a modal dialog.
- */
-DlgMacroExecuteImp::DlgMacroExecuteImp( QWidget* parent,  const char* name, bool modal, WFlags fl )
-    : DlgMacroExecute( parent, name, modal, fl ),FCWindow(name)
-{
-}
 
-/*  
- *  Destroys the object and frees any allocated resources
- */
-DlgMacroExecuteImp::~DlgMacroExecuteImp()
-{
-    // no need to delete child widgets, Qt does it all for us
-}
+class DlgPartBoxImp : public DlgPartBox, public FCWindow
+{ 
+    Q_OBJECT
 
-/* 
- * public slot
- */
-void DlgMacroExecuteImp::OnExecute()
-{
-    qWarning( "DlgMacroExecuteImp::OnExecute() not yet implemented!" ); 
-}
-/* 
- * public slot
- */
-void DlgMacroExecuteImp::OnNewFolder()
-{
-    qWarning( "DlgMacroExecuteImp::OnNewFolder() not yet implemented!" ); 
-}
-/* 
- * public slot
- */
-void DlgMacroExecuteImp::OnRecord()
-{
-    qWarning( "DlgMacroExecuteImp::OnRecord() not yet implemented!" ); 
-}
-/* 
- * public slot
- */
-void DlgMacroExecuteImp::OnNewListItemPicked(QListViewItem*)
-{
-    qWarning( "DlgMacroExecuteImp::OnNewListItemPicked(QListViewItem*) not yet implemented!" ); 
-}
+public:
+    DlgPartBoxImp( QWidget* parent = 0, const char* name = 0, bool modal = FALSE, WFlags fl = 0 );
+    ~DlgPartBoxImp();
 
-// compile the mocs and Dialog
-#include "DlgMacroExecute.cpp"
-#include "moc_DlgMacroExecute.cpp"
-#include "moc_DlgMacroExecuteImp.cpp"
+public slots:
+    void OnApply();
+
+};
+
+#endif // DLGPARTBOX_H

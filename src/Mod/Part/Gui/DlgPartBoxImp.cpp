@@ -1,4 +1,4 @@
-/** \file DlgMacroExecuteImp.cpp
+/** \file DlgPartBoxImp.cpp
  *  \brief  
  *  \author $Author$
  *  \version $Revision$
@@ -37,29 +37,30 @@
  *  Precompiled.h. For systems without precompilation the header needed are
  *  included in the else fork.
  */
-#include "../Config.h"
+#include "../../../Config.h"
 #ifdef _PreComp_
 #	include "PreCompiled.h"
 #else
 #endif
-#include "DlgMacroExecuteImp.h"
+
+#include "DlgPartBoxImp.h"
 
 /* 
- *  Constructs a DlgMacroExecuteImp which is a child of 'parent', with the 
+ *  Constructs a DlgPartBox which is a child of 'parent', with the 
  *  name 'name' and widget flags set to 'f' 
  *
  *  The dialog will by default be modeless, unless you set 'modal' to
  *  TRUE to construct a modal dialog.
  */
-DlgMacroExecuteImp::DlgMacroExecuteImp( QWidget* parent,  const char* name, bool modal, WFlags fl )
-    : DlgMacroExecute( parent, name, modal, fl ),FCWindow(name)
+DlgPartBoxImp::DlgPartBoxImp( QWidget* parent,  const char* name, bool modal, WFlags fl )
+    : DlgPartBox( parent, name, modal, fl ), FCWindow(name)
 {
 }
 
 /*  
  *  Destroys the object and frees any allocated resources
  */
-DlgMacroExecuteImp::~DlgMacroExecuteImp()
+DlgPartBoxImp::~DlgPartBoxImp()
 {
     // no need to delete child widgets, Qt does it all for us
 }
@@ -67,33 +68,11 @@ DlgMacroExecuteImp::~DlgMacroExecuteImp()
 /* 
  * public slot
  */
-void DlgMacroExecuteImp::OnExecute()
+void DlgPartBoxImp::OnApply()
 {
-    qWarning( "DlgMacroExecuteImp::OnExecute() not yet implemented!" ); 
-}
-/* 
- * public slot
- */
-void DlgMacroExecuteImp::OnNewFolder()
-{
-    qWarning( "DlgMacroExecuteImp::OnNewFolder() not yet implemented!" ); 
-}
-/* 
- * public slot
- */
-void DlgMacroExecuteImp::OnRecord()
-{
-    qWarning( "DlgMacroExecuteImp::OnRecord() not yet implemented!" ); 
-}
-/* 
- * public slot
- */
-void DlgMacroExecuteImp::OnNewListItemPicked(QListViewItem*)
-{
-    qWarning( "DlgMacroExecuteImp::OnNewListItemPicked(QListViewItem*) not yet implemented!" ); 
+    qWarning( "DlgPartBox::OnApply() not yet implemented!" ); 
 }
 
-// compile the mocs and Dialog
-#include "DlgMacroExecute.cpp"
-#include "moc_DlgMacroExecute.cpp"
-#include "moc_DlgMacroExecuteImp.cpp"
+#include "DlgPartBox.cpp"
+#include "moc_DlgPartBox.cpp"
+#include "moc_DlgPartBoxImp.cpp"

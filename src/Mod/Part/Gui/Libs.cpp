@@ -1,9 +1,12 @@
-/** \file DlgMacroExecuteImp.cpp
- *  \brief  
+/** \file Libs.cpp
+ *  \brief Include all needed libs on Windows
  *  \author $Author$
  *  \version $Revision$
  *  \date    $Date$
- *   
+ *  Here all the libs get includet by a #pragma dirctive.
+ *  Unfortunatly there is nothin comperable on UNIX, so there
+ *  you have to use compiler -l staments, which are somwere deep
+ *  in the Makefile.
  */
 
 /***************************************************************************
@@ -31,69 +34,34 @@
  ***************************************************************************/
 
 
-/** Precompiled header stuff
- *  on some compilers the precompiled header option gain significant compile 
- *  time! So every external header (libs and system) should included in 
- *  Precompiled.h. For systems without precompilation the header needed are
- *  included in the else fork.
- */
-#include "../Config.h"
-#ifdef _PreComp_
-#	include "PreCompiled.h"
+// === Including of libs: ============================================================================
+#include "../../../Config.h"
+#ifdef WNT
+#	pragma comment(lib,"TKernel.lib")
+#	pragma comment(lib,"TKMath.lib")
+#	pragma comment(lib,"TKService.lib")
+#	pragma comment(lib,"TKGeomAlgo.lib")
+#	pragma comment(lib,"TKGeomBase.lib")
+#	pragma comment(lib,"TKG2d.lib")
+#	pragma comment(lib,"TKG3d.lib")
+#	pragma comment(lib,"TKBRep.lib")
+#	pragma comment(lib,"TKTopAlgo.lib")
+#	pragma comment(lib,"TKPrim.lib")
+	// OpenCasCade Std IO
+#	pragma comment(lib,"TKIGESStd.lib")
+#	pragma comment(lib,"TKShHealingStd.lib")
+#	pragma comment(lib,"TKSTEPStd.lib")
+	// OpenCascade View
+#	pragma comment(lib,"TKV2d.lib")
+#	pragma comment(lib,"TKV3d.lib")
+	// Application Framwork OCAF
+#	pragma comment(lib,"TKCAF.lib")
+#	pragma comment(lib,"TKCDF.lib")
+	// QT extension
+#	pragma comment(lib,"qextmdi.lib")
+#	pragma comment(lib,"qt-mt230nc.lib")
+
 #else
+//#	error "Dont compile this file on UNIX!"
 #endif
-#include "DlgMacroExecuteImp.h"
 
-/* 
- *  Constructs a DlgMacroExecuteImp which is a child of 'parent', with the 
- *  name 'name' and widget flags set to 'f' 
- *
- *  The dialog will by default be modeless, unless you set 'modal' to
- *  TRUE to construct a modal dialog.
- */
-DlgMacroExecuteImp::DlgMacroExecuteImp( QWidget* parent,  const char* name, bool modal, WFlags fl )
-    : DlgMacroExecute( parent, name, modal, fl ),FCWindow(name)
-{
-}
-
-/*  
- *  Destroys the object and frees any allocated resources
- */
-DlgMacroExecuteImp::~DlgMacroExecuteImp()
-{
-    // no need to delete child widgets, Qt does it all for us
-}
-
-/* 
- * public slot
- */
-void DlgMacroExecuteImp::OnExecute()
-{
-    qWarning( "DlgMacroExecuteImp::OnExecute() not yet implemented!" ); 
-}
-/* 
- * public slot
- */
-void DlgMacroExecuteImp::OnNewFolder()
-{
-    qWarning( "DlgMacroExecuteImp::OnNewFolder() not yet implemented!" ); 
-}
-/* 
- * public slot
- */
-void DlgMacroExecuteImp::OnRecord()
-{
-    qWarning( "DlgMacroExecuteImp::OnRecord() not yet implemented!" ); 
-}
-/* 
- * public slot
- */
-void DlgMacroExecuteImp::OnNewListItemPicked(QListViewItem*)
-{
-    qWarning( "DlgMacroExecuteImp::OnNewListItemPicked(QListViewItem*) not yet implemented!" ); 
-}
-
-// compile the mocs and Dialog
-#include "DlgMacroExecute.cpp"
-#include "moc_DlgMacroExecute.cpp"
-#include "moc_DlgMacroExecuteImp.cpp"
