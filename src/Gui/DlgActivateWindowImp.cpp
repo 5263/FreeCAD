@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (c) Jürgen Riegel          (juergen.riegel@web.de) 2002     *
+ *   Copyright (c) 2004 Werner Mayer <werner.wm.mayer@gmx.de>              *
  *                                                                         *
  *   This file is part of the FreeCAD CAx development system.              *
  *                                                                         *
@@ -21,46 +21,68 @@
  ***************************************************************************/
 
 
-/** Precompiled header stuff
- *  on some compilers the precompiled header option gain significant compile 
- *  time! So every external header (libs and system) should included in 
- *  Precompiled.h. For systems without precompilation the header needed are
- *  included in the else fork.
- */
 #include "PreCompiled.h"
+
 #ifndef _PreComp_
+# include <qlistbox.h>
 #endif
 
-#include "DlgPartBoxImp.h"
+#include "DlgActivateWindowImp.h"
+#include "Application.h"
 
-/* 
- *  Constructs a DlgPartBox which is a child of 'parent', with the 
- *  name 'name' and widget flags set to 'f' 
+using namespace Gui::Dialog;
+
+/**
+ *  Constructs a DlgActivateWindowImp which is a child of 'parent', with the
+ *  name 'name' and widget flags set to 'f'
  *
  *  The dialog will by default be modeless, unless you set 'modal' to
  *  TRUE to construct a modal dialog.
  */
-DlgPartBoxImp::DlgPartBoxImp( QWidget* parent,  const char* name, bool modal, WFlags fl )
-    : DlgPartBox( parent, name, modal, fl ), WindowParameter(name)
+DlgActivateWindowImp::DlgActivateWindowImp( QWidget* parent, const char* name, bool modal, WFlags fl )
+  : DlgActivateWindowBase( parent, name, modal, fl )
+{
+  QWidgetList windows = ApplicationWindow::Instance->windows();
+  QWidget* activeWnd = ApplicationWindow::Instance->windows( QWorkspace::StackingOrder ).last();
+
+  int active = -1;
+  for ( int i=0; i<(int)windows.count(); i++ )
+  {
+    listBox2->insertItem( windows.at(i)->caption() );
+    if ( windows.at(i) == activeWnd )
+      active = i;
+  }
+
+  if ( active > -1 )
+    listBox2->setCurrentItem( active );
+
+  listBox2->setFocus();
+}
+
+/** Destroys the object and frees any allocated resources */
+DlgActivateWindowImp::~DlgActivateWindowImp()
 {
 }
 
-/*  
- *  Destroys the object and frees any allocated resources
+/**
+ * Activates the MDI window you wish and closes the dialog.
  */
-DlgPartBoxImp::~DlgPartBoxImp()
+void DlgActivateWindowImp::accept()
 {
-    // no need to delete child widgets, Qt does it all for us
+  QString activated = listBox2->currentText();
+
+  QWidgetList windows = ApplicationWindow::Instance->windows();
+  for ( int i=0; i<(int)windows.count(); i++ )
+  {
+    if( windows.at(i)->caption() == activated )
+    {
+      windows.at(i)->setFocus();
+      break;
+    }
+  }
+
+  DlgActivateWindowBase::accept();
 }
 
-/* 
- * public slot
- */
-void DlgPartBoxImp::OnApply()
-{
-    qWarning( "DlgPartBox::OnApply() not yet implemented!" ); 
-}
-
-#include "DlgPartBox.cpp"
-#include "moc_DlgPartBox.cpp"
-#include "moc_DlgPartBoxImp.cpp"
+#include "DlgActivateWindow.cpp"
+#include "moc_DlgActivateWindow.cpp"

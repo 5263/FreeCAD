@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (c) Jürgen Riegel          (juergen.riegel@web.de) 2002     *
+ *   Copyright (c) 2004 Werner Mayer <werner.wm.mayer@gmx.de>              *
  *                                                                         *
  *   This file is part of the FreeCAD CAx development system.              *
  *                                                                         *
@@ -21,46 +21,34 @@
  ***************************************************************************/
 
 
-/** Precompiled header stuff
- *  on some compilers the precompiled header option gain significant compile 
- *  time! So every external header (libs and system) should included in 
- *  Precompiled.h. For systems without precompilation the header needed are
- *  included in the else fork.
- */
-#include "PreCompiled.h"
+#ifndef DLG_ACTIVATE_WINDOW_IMP_H__
+#define DLG_ACTIVATE_WINDOW_IMP_H__
+
+#include "DlgActivateWindow.h"
+
 #ifndef _PreComp_
 #endif
 
-#include "DlgPartBoxImp.h"
+namespace Gui {
+namespace Dialog {
 
-/* 
- *  Constructs a DlgPartBox which is a child of 'parent', with the 
- *  name 'name' and widget flags set to 'f' 
- *
- *  The dialog will by default be modeless, unless you set 'modal' to
- *  TRUE to construct a modal dialog.
+/**
+ * The DlgActivateWindowImp class provides a dialog to activate the MDI window
+ * of the main window you wish. Since there could be a lot of MDI windows in
+ * an application you cannot put all of them into the "Windows" popup menu.
+ * \author Werner Mayer
  */
-DlgPartBoxImp::DlgPartBoxImp( QWidget* parent,  const char* name, bool modal, WFlags fl )
-    : DlgPartBox( parent, name, modal, fl ), WindowParameter(name)
+class DlgActivateWindowImp : public DlgActivateWindowBase
 {
-}
+public:
+  DlgActivateWindowImp( QWidget* parent = 0, const char* name = 0, bool modal = FALSE, WFlags fl = 0 );
+  ~DlgActivateWindowImp();
 
-/*  
- *  Destroys the object and frees any allocated resources
- */
-DlgPartBoxImp::~DlgPartBoxImp()
-{
-    // no need to delete child widgets, Qt does it all for us
-}
+protected:
+  void accept();
+};
 
-/* 
- * public slot
- */
-void DlgPartBoxImp::OnApply()
-{
-    qWarning( "DlgPartBox::OnApply() not yet implemented!" ); 
-}
+} // namespace Dialog
+} // namespace Gui
 
-#include "DlgPartBox.cpp"
-#include "moc_DlgPartBox.cpp"
-#include "moc_DlgPartBoxImp.cpp"
+#endif // DLG_ACTIVATE_WINDOW_IMP_H__
