@@ -30,6 +30,9 @@
  * Modification history:
  *
  * $Log$
+ * Revision 1.2  2003/05/26 06:29:15  jriegel
+ * 0.1B61
+ *
  * Revision 1.1  2003/05/17 14:09:03  wmayer
  * scintilla added
  *
@@ -237,6 +240,7 @@
  *	compile:	BOT 1 CHR f CHR o CLO ANY END EOT 1 CHR - REF 1 END
  *	matches:	foo-foo fo-fo fob-fob foobar-foobar ...
  */
+#include "../../Config.h"
 
 #include "RESearch.h"
 
