@@ -1,10 +1,9 @@
-/** \file DlgDocTamplatesImp.h
- *  \brief Implementation of the Doc Tamplate Dialog
+/** \file DlgSettings3DViewImp.cpp
+ *  \brief  
  *  \author $Author$
  *  \version $Revision$
  *  \date    $Date$
- *  Here a example of a file layout for FreeCAD.
- *  @see Parameter.cpp
+ *   
  */
 
 /***************************************************************************
@@ -28,40 +27,40 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  *
  *   USA                                                                   *
  *                                                                         *
- *   Juergen Riegel 2002                                                   *
+ *   Juergen Riegel 2003                                                   *
  ***************************************************************************/
 
-#ifndef DLGDOCTEMPLATESIMP_H
-#define DLGDOCTEMPLATESIMP_H
-#include "DlgDocTemplates.h"
-#include "Window.h"
 
-class FCCommand;
-
-class DlgDocTemplatesImp : virtual public DlgDocTemplates, public FCWindowParameter
-{ 
-    Q_OBJECT
-
-public:
-
-    DlgDocTemplatesImp( FCCommand* pcCmd,QWidget* parent = 0, const char* name = 0, bool modal = FALSE, WFlags fl = 0 );
-    ~DlgDocTemplatesImp();
-
-	// for linux one dummy constructor:
-#ifdef FC_OS_LINUX
-	DlgDocTemplatesImp(int dummy, QWidget* parent,  const char* name, bool modal, WFlags fl )
-		:FCWindowParameter(name){DlgDocTemplatesImp(parent,name,modal,fl);}
+/** Precompiled header stuff
+ *  on some compilers the precompiled header option gain significant compile 
+ *  time! So every external header (libs and system) should included in 
+ *  Precompiled.h. For systems without precompilation the header needed are
+ *  included in the else fork.
+ */
+#include "../Config.h"
+#ifdef _PreComp_
+#	include "PreCompiled.h"
+#else
 #endif
+#include "DlgSettings3DViewImp.h"
 
-public slots:
-    virtual void ChoseFile();
-    virtual void Validate();
-    virtual void ViewChange(QIconViewItem*);
-    virtual void EditFile();
-    virtual void IconDoubleClick(QIconViewItem*);
+/* 
+ *  Constructs a FCDlgSettings3DViewImp which is a child of 'parent', with the 
+ *  name 'name' and widget flags set to 'f' 
+ */
+FCDlgSettings3DView::FCDlgSettings3DView( QWidget* parent,  const char* name, WFlags fl )
+    : DlgSettings3DView( parent, name, fl )
+{
+}
 
-protected:
-	FCCommand* _pcCmd;
-};
+/*  
+ *  Destroys the object and frees any allocated resources
+ */
+FCDlgSettings3DView::~FCDlgSettings3DView()
+{
+    // no need to delete child widgets, Qt does it all for us
+}
 
-#endif // DLGDOCTEMPLATESIMP_H
+#include "DlgSettings3DView.cpp"
+#include "moc_DlgSettings3DView.cpp"
+#include "moc_DlgSettings3DViewImp.cpp"

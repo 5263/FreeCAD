@@ -1,10 +1,9 @@
-/** \file DlgDocTamplatesImp.h
- *  \brief Implementation of the Doc Tamplate Dialog
+/** \file DlgSettings3DViewImp.h
+ *  \brief  
  *  \author $Author$
  *  \version $Revision$
  *  \date    $Date$
- *  Here a example of a file layout for FreeCAD.
- *  @see Parameter.cpp
+ *   
  */
 
 /***************************************************************************
@@ -31,37 +30,19 @@
  *   Juergen Riegel 2002                                                   *
  ***************************************************************************/
 
-#ifndef DLGDOCTEMPLATESIMP_H
-#define DLGDOCTEMPLATESIMP_H
-#include "DlgDocTemplates.h"
-#include "Window.h"
 
-class FCCommand;
+#ifndef FCDLGSETTINGS3DVIEWIMP_H
+#define FCDLGSETTINGS3DVIEWIMP_H
+#include "DlgSettings3DView.h"
 
-class DlgDocTemplatesImp : virtual public DlgDocTemplates, public FCWindowParameter
+class FCDlgSettings3DView : public DlgSettings3DView
 { 
     Q_OBJECT
 
 public:
+    FCDlgSettings3DView( QWidget* parent = 0, const char* name = 0, WFlags fl = 0 );
+    ~FCDlgSettings3DView();
 
-    DlgDocTemplatesImp( FCCommand* pcCmd,QWidget* parent = 0, const char* name = 0, bool modal = FALSE, WFlags fl = 0 );
-    ~DlgDocTemplatesImp();
-
-	// for linux one dummy constructor:
-#ifdef FC_OS_LINUX
-	DlgDocTemplatesImp(int dummy, QWidget* parent,  const char* name, bool modal, WFlags fl )
-		:FCWindowParameter(name){DlgDocTemplatesImp(parent,name,modal,fl);}
-#endif
-
-public slots:
-    virtual void ChoseFile();
-    virtual void Validate();
-    virtual void ViewChange(QIconViewItem*);
-    virtual void EditFile();
-    virtual void IconDoubleClick(QIconViewItem*);
-
-protected:
-	FCCommand* _pcCmd;
 };
 
-#endif // DLGDOCTEMPLATESIMP_H
+#endif // FCDLGSETTINGS3DVIEWIMP_H

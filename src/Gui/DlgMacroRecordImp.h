@@ -35,6 +35,8 @@
 #include "DlgMacroRecord.h"
 #include "Window.h"
 
+class FCMacroManager;
+
 class DlgMacroRecordImp : public DlgMacroRecord, public FCWindowParameter
 { 
     Q_OBJECT
@@ -44,10 +46,18 @@ public:
     ~DlgMacroRecordImp();
 
 public slots:
-    void OnTieCommandBar();
-    void OnTieToolBar();
-    void OnTieKeyboard();
+    virtual void OnTieCommandBar();
+    virtual void OnTieToolBar();
+    virtual void OnTieKeyboard();
+    virtual void Cancel();
+    virtual void Start();
+    virtual void Stop();
+    virtual void File();
 
+protected:
+	/// conviniance pointer
+	FCMacroManager* _pcMacroMngr; 
+	std::string _cMacroPath;
 };
 
 #endif // DLGMACRORECORDIMP_H
