@@ -23,11 +23,10 @@
 #ifndef DLGPARTBOXIMP_H
 #define DLGPARTBOXIMP_H
 
-#include "../../../Gui/Window.h"
 #include "DlgPartBox.h"
 
 
-class DlgPartBoxImp : public DlgPartBox, public Gui::WindowParameter
+class DlgPartBoxImp : public DlgPartBox
 { 
     Q_OBJECT
 
