@@ -23,31 +23,72 @@
 
 #include "PreCompiled.h"
 #ifndef _PreComp_
+#	include <stdio.h>
+# if defined (_POSIX_C_SOURCE)
+#   undef  _POSIX_C_SOURCE
+# endif // (re-)defined in pyconfig.h
+#	include <Python.h>
+# include <BRep_Builder.hxx>
+# include <BRepTools.hxx>
 #endif
 
-#include <App/Application.h>
 #include <Base/Console.h>
+#include <Base/Interpreter.h>
 
-#include <stdio.h>
-#include <Python.h>
-
-#include "FeatureMeshImportSTL.h"
-
-
-/* registration table  */
-extern struct PyMethodDef Mesh_Import_methods[];
+#include <App/Application.h>
+#include <App/Document.h>
+#include <App/Feature.h>
+#include <App/Property.h>
+#include <App/Topology.h>
 
 
-/* Python entry */
-extern "C" {
-void AppMeshExport initMesh() {
 
-  (void) Py_InitModule("Mesh", Mesh_Import_methods);   /* mod name, table ptr */
+/* module functions */
+static PyObject *                        
+open(PyObject *self, PyObject *args)     
+{                                        
+  const char* Name;
+  if (! PyArg_ParseTuple(args, "s",&Name))			 
+    return NULL;                         
+    
+  Base::Console().Log("Open in Mesh with %s",Name);
 
-  Base::Console().Log("AppMesh loaded\n");
-	App::FeatureFactory().AddProducer("MeshImportSTL",new App::FeatureProducer<Mesh::FeatureMeshImportSTL>);
+  // extract ending
+  std::string cEnding(Name);
+  unsigned int pos = cEnding.find_last_of('.');
+  if(pos == cEnding.size())
+    Py_Error(PyExc_Exception,"no file ending");
+  cEnding.erase(0,pos+1);
 
-  return;
+  if(cEnding == "stl" || cEnding == "ast")
+  {
+    // create new document and add Import feature
+    App::Document *pcDoc = App::GetApplication().New();
+    App::Feature *pcFeature = pcDoc->AddFeature("MeshImportSTL");
+    pcFeature->GetProperty("FileName").Set(Name);
+    pcFeature->TouchProperty("FileName");
+    pcDoc->Recompute();
+
+  }
+  else
+  {
+    Py_Error(PyExc_Exception,"unknown file ending");
+  }
+
+	Py_Return;    
 }
 
-} // extern "C" 
+/* module functions */
+static PyObject *                        
+save(PyObject *self, PyObject *args)
+{
+	Py_Return;    
+}
+
+/* registration table  */
+struct PyMethodDef Mesh_Import_methods[] = {
+    {"open", open, 1},				/* method name, C func ptr, always-tuple */
+    {"save", save, 1},
+
+    {NULL, NULL}                   /* end of table marker */
+};
