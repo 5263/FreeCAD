@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (c) 2005 Imetric 3D GmbH                                    *
+ *   Copyright (c) Juergen Riegel         <juergen.riegel@web.de>          *
  *                                                                         *
  *   This file is part of the FreeCAD CAx development system.              *
  *                                                                         *
@@ -21,67 +21,20 @@
  ***************************************************************************/
 
 
-#ifndef __MESH_MESHIO_HXX__
-#define __MESH_MESHIO_HXX__
-
-#include "MeshKernel.h"
-
-namespace Mesh {
-
-class MeshKernel;
-class FileStream;
-
-class AppMeshExport MeshSTL
-{
-  public:
-    public:
-    MeshSTL (MeshKernel &rclM);
-    public:
-    virtual ~MeshSTL (void)
-    {}
-
-    public:
-    bool Load (FileStream &rstrIn);
-
-    public:
-    bool LoadAscii (FileStream &rstrIn);
-
-    public:
-    bool LoadBinary (FileStream &rstrIn);
-
-    public:
-    bool SaveAscii (FileStream &rstrOut) const;
-
-    public:
-    bool SaveBinary (FileStream &rstrOut) const;
-
-  protected:
-    // help methods
-
-    protected:
-    MeshKernel &_rclMesh;   // reference to mesh data structure
-
-};
-
-class AppMeshExport MeshInventor
-{
-    public:
-    MeshInventor (MeshKernel &rclM) : _rclMesh(rclM) 
-    {}
-    public:
-    virtual ~MeshInventor (void)
-    {}
-
-    public:
-    bool Load (FileStream &rstrIn);
-
-    public:
-    bool Save (FileStream &rstrOut) const;
-
-    protected:
-    MeshKernel &_rclMesh;
-};
-
-} // namespace Mesh
-
+#include "PreCompiled.h"
+#ifndef _PreComp_
 #endif
+
+
+#include "MeshAlgos.h"
+#include "Mesh.h"
+#include "core/MeshIO.h"
+
+using namespace Mesh;
+
+
+Mesh::MeshWithProperty* MeshAlgos::Load(const char *FileName)
+{
+  return new MeshWithProperty();
+}
+

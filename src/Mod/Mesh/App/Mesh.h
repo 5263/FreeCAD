@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (c) 2005 Imetric 3D GmbH                                    *
+ *   Copyright (c) Juergen Riegel         <juergen.riegel@web.de>          *
  *                                                                         *
  *   This file is part of the FreeCAD CAx development system.              *
  *                                                                         *
@@ -21,67 +21,47 @@
  ***************************************************************************/
 
 
-#ifndef __MESH_MESHIO_HXX__
-#define __MESH_MESHIO_HXX__
+#ifndef _Mesh_h_
+#define _Mesh_h_
 
-#include "MeshKernel.h"
+#ifndef _PreComp_
+# include <vector>
+#endif
 
-namespace Mesh {
+#include "core/MeshKernel.h"
 
-class MeshKernel;
-class FileStream;
 
-class AppMeshExport MeshSTL
+namespace Mesh
 {
-  public:
-    public:
-    MeshSTL (MeshKernel &rclM);
-    public:
-    virtual ~MeshSTL (void)
-    {}
 
-    public:
-    bool Load (FileStream &rstrIn);
-
-    public:
-    bool LoadAscii (FileStream &rstrIn);
-
-    public:
-    bool LoadBinary (FileStream &rstrIn);
-
-    public:
-    bool SaveAscii (FileStream &rstrOut) const;
-
-    public:
-    bool SaveBinary (FileStream &rstrOut) const;
-
-  protected:
-    // help methods
-
-    protected:
-    MeshKernel &_rclMesh;   // reference to mesh data structure
+/** Property back of the Mesh datastructure
+ *  with objects derived from this class the mesh
+ *  data structur is enriched with aditional data.
+ *  The linking point is the Point or face Index. 
+ */
+class MeshPropertyBack
+{
+public:
+	/// Constructor
+	MeshPropertyBack(void);
 
 };
 
-class AppMeshExport MeshInventor
+
+/** Mesh with property backs
+ */
+class AppMeshExport MeshWithProperty
 {
-    public:
-    MeshInventor (MeshKernel &rclM) : _rclMesh(rclM) 
-    {}
-    public:
-    virtual ~MeshInventor (void)
-    {}
+public:
+	/// Constructor
+	Mesh(void);
 
-    public:
-    bool Load (FileStream &rstrIn);
+private:
+  MeshKernel _Mesh;
 
-    public:
-    bool Save (FileStream &rstrOut) const;
-
-    protected:
-    MeshKernel &_rclMesh;
 };
+
+
 
 } // namespace Mesh
-
-#endif
+#endif 

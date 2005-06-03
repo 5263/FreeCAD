@@ -26,7 +26,7 @@
 
 #include <App/Feature.h>
 
-#include "Core/Mesh.h"
+#include "Core/MeshKernel.h"
 
 class TFunction_Logbook;
 class FeaturePy;

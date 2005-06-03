@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (c) 2005 Imetric 3D GmbH                                    *
+ *   Copyright (c) Juergen Riegel         <juergen.riegel@web.de>          *
  *                                                                         *
  *   This file is part of the FreeCAD CAx development system.              *
  *                                                                         *
@@ -21,67 +21,53 @@
  ***************************************************************************/
 
 
-#ifndef __MESH_MESHIO_HXX__
-#define __MESH_MESHIO_HXX__
+#ifndef MESH_FEATURE_PY_H
+#define MESH_FEATURE_PY_H
 
-#include "MeshKernel.h"
+#include <Base/PyExportImp.h>
 
-namespace Mesh {
+namespace Base{
+  class PyObjectBase;
+}
 
-class MeshKernel;
-class FileStream;
-
-class AppMeshExport MeshSTL
+namespace Mesh
 {
-  public:
-    public:
-    MeshSTL (MeshKernel &rclM);
-    public:
-    virtual ~MeshSTL (void)
-    {}
 
-    public:
-    bool Load (FileStream &rstrIn);
+class MeshFeature;
 
-    public:
-    bool LoadAscii (FileStream &rstrIn);
+//===========================================================================
+// MeshPy - Python wrapper 
+//===========================================================================
 
-    public:
-    bool LoadBinary (FileStream &rstrIn);
+// The DocTypeStd python class 
+class AppMeshExport MeshPy :public Base::PyObjectBase
+{
+  /// always start with Py_Header
+  Py_Header;
 
-    public:
-    bool SaveAscii (FileStream &rstrOut) const;
+public:
+  MeshPy(MeshFeature *pcFeature, PyTypeObject *T = &Type);
+  static PyObject *PyMake(PyObject *, PyObject *);
 
-    public:
-    bool SaveBinary (FileStream &rstrOut) const;
+  ~MeshPy();
 
-  protected:
-    // help methods
+  //---------------------------------------------------------------------
+  // python exports goes here +++++++++++++++++++++++++++++++++++++++++++	
+  //---------------------------------------------------------------------
 
-    protected:
-    MeshKernel &_rclMesh;   // reference to mesh data structure
+  virtual PyObject *_repr(void);  				// the representation
+  PyObject *_getattr(char *attr);					// __getattr__ function
+  int _setattr(char *attr, PyObject *value);		// __setattr__ function
 
+  
+//  PYFUNCDEF_D(MeshPy,getShape)
+
+private:
+  MeshFeature *_pcFeature;
 };
 
-class AppMeshExport MeshInventor
-{
-    public:
-    MeshInventor (MeshKernel &rclM) : _rclMesh(rclM) 
-    {}
-    public:
-    virtual ~MeshInventor (void)
-    {}
+} //namespace Mesh
 
-    public:
-    bool Load (FileStream &rstrIn);
 
-    public:
-    bool Save (FileStream &rstrOut) const;
 
-    protected:
-    MeshKernel &_rclMesh;
-};
-
-} // namespace Mesh
-
-#endif
+#endif // MESH_FEATURE_PY_H 
