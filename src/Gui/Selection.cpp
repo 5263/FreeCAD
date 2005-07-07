@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (c) 2004 Jürgen Riegel <juergen.riegel@web.de>              *
+ *   Copyright (c) Juergen Riegel         <juergen.riegel@web.de>          *
  *                                                                         *
  *   This file is part of the FreeCAD CAx development system.              *
  *                                                                         *
@@ -21,6 +21,12 @@
  ***************************************************************************/
 
 
+/*  Precompiled header stuff
+ *  on some compilers the precompiled header option gain significant compile 
+ *  time! So every external header (libs and system) should included in 
+ *  Precompiled.h. For systems without precompilation the header needed are
+ *  included in the else fork.
+ */
 #include "PreCompiled.h"
 
 #ifndef _PreComp_
@@ -30,25 +36,60 @@
 
 /// Here the FreeCAD includes sorted by Base,App,Gui......
 #include "Selection.h"
+#include <Base/Exception.h>
 
 
 using namespace Gui;
 
 
-
-
 //**************************************************************************
 // Construction/Destruction
 
-       
-Selection::Selection()
+/**
+ * A constructor.
+ * A more elaborate description of the constructor.
+ */
+SelectionSingelton::SelectionSingelton()
 {
+}
 
+/**
+ * A destructor.
+ * A more elaborate description of the destructor.
+ */
+SelectionSingelton::~SelectionSingelton()
+{
 }
 
 
-Selection::~Selection()
+SelectionSingelton* SelectionSingelton::_pcSingleton = NULL;
+
+SelectionSingelton& SelectionSingelton::instance(void)
 {
+  if (_pcSingleton == NULL)
+  {
+    _pcSingleton = new SelectionSingelton;
+  }
+
+  return *_pcSingleton;
+}
+
+void SelectionSingelton::destruct (void)
+{
+  if (_pcSingleton != NULL)
+    delete _pcSingleton;
+}
+
+void SelectionSingelton::addFeature(App::Feature *f)
+{
+  _FeatureSet.insert(f);
+
+}
+
+void SelectionSingelton::removeFeature(App::Feature *f)
+{
+  _FeatureSet.erase(f);
+
 
 }
 
@@ -56,7 +97,6 @@ Selection::~Selection()
 
 //**************************************************************************
 // separator for other implemetation aspects
-
 
 
 
