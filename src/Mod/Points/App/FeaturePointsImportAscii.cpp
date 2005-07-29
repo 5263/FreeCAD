@@ -30,6 +30,8 @@
 
 #include <Base/Console.h>
 #include <Base/Exception.h>
+#include "../App/PointsAlgos.h"
+#include "../App/Points.h"
 #include "FeaturePointsImportAscii.h"
 
 
@@ -47,23 +49,17 @@ Standard_Integer FeaturePointsImportAscii::Execute(TFunction_Logbook& log)
 
   try{
 
-assert(0);
-    const char* FileName = 0;//GetStringProperty("FileName");
+    std::string FileName = getPropertyString("FileName");
 
     // ask for read permisson
-		if ( access(FileName, 4) != 0 )
+		if ( access(FileName.c_str(), 4) != 0 )
     {
       Base::Console().Log("FeaturePointsImportAscii::Execute() not able to open %s!\n",FileName);
       return 1;
     }
-/*
-    PointsSTL aReader(_cPoints );
 
-    // read STL file
-    FileStream str( FileName, std::ios::in);
-    if ( !aReader.Load( str ) )
-      throw Base::Exception("STL read failed (load file)");
-      */
+     PointsAlgos::Load(getPoints(),FileName.c_str());
+
   }
   catch(...){
     Base::Console().Error("FeaturePointsImportAscii::Execute() failed!");

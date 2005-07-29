@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (c) Juergen Riegel         <juergen.riegel@web.de>          *
+ *   Copyright (c) Jürgen Riegel          (juergen.riegel@web.de) 2002     *
  *                                                                         *
  *   This file is part of the FreeCAD CAx development system.              *
  *                                                                         *
@@ -21,52 +21,38 @@
  ***************************************************************************/
 
 
-#ifndef Points_FEATURE_PY_H
-#define Points_FEATURE_PY_H
 
-#include <Base/PyExportImp.h>
-#include <App/FeaturePy.h>
+#ifndef __FeaturePartImportBrep_H__
+#define __FeaturePartImportBrep_H__
 
-namespace Base{
-  class PyObjectBase;
-}
 
-namespace Points
+#include "PartFeature.h"
+
+namespace Part
 {
 
-class PointsFeature;
 
-//===========================================================================
-// PointsFeaturePy - Python wrapper 
-//===========================================================================
-
-// The DocTypeStd python class 
-class PointsAppExport PointsFeaturePy :public App::FeaturePy
+class FeaturePartImportBrep :public PartFeature
 {
-  /// always start with Py_Header
-  Py_Header;
-
 public:
-  PointsFeaturePy(PointsFeature *pcFeature, PyTypeObject *T = &Type);
-  static PyObject *PyMake(PyObject *, PyObject *);
 
-  ~PointsFeaturePy();
+	virtual void InitLabel(const TDF_Label &rcLabel);
 
-  //---------------------------------------------------------------------
-  // python exports goes here +++++++++++++++++++++++++++++++++++++++++++	
-  //---------------------------------------------------------------------
+//	virtual bool MustExecute(const TFunction_Logbook& log);
 
-  virtual PyObject *_repr(void);  				// the representation
-  PyObject *_getattr(char *attr);					// __getattr__ function
-  int _setattr(char *attr, PyObject *value);		// __setattr__ function
-  PYFUNCDEF_D(PointsFeaturePy,getPoints)
+	virtual Standard_Integer Execute(TFunction_Logbook& log);
 
-private:
-  PointsFeature *_pcFeature;
+	virtual void Validate(TFunction_Logbook& log);
+
+  /// Returns the Name/Type of the feature
+  virtual const char *Type(void){return "PartImportIges";};
 };
 
-} //namespace Points
+
+
+}
 
 
 
-#endif // Points_FEATURE_PY_H 
+
+#endif // __FeaturePartImportBrep_H__
