@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (c) Juergen Riegel         <juergen.riegel@web.de>          *
+ *   Copyright (c) 2005 Werner Mayer <werner.wm.mayer@gmx.de>              *
  *                                                                         *
  *   This file is part of the FreeCAD CAx development system.              *
  *                                                                         *
@@ -21,43 +21,63 @@
  ***************************************************************************/
 
 
-#ifndef FEATURE_Points_IMPORT_Ascii_H
-#define FEATURE_Points_IMPORT_Ascii_H
+#ifndef POINTS_PY_H
+#define POINTS_PY_H
 
-#include "PointsFeature.h"
+#include <Base/PyExportImp.h>
+
 
 namespace Points
 {
 
+class PointsWithProperty;
 
+//===========================================================================
+// PointsPy - Python wrapper 
+//===========================================================================
 
-/**
- * The FeaturePointsImportAscii class reads the STL Points format
- * into the FreeCAD workspace.
- * @author Werner Mayer
- */
-class FeaturePointsImportAscii : public PointsFeature
+// The DocTypeStd python class 
+class PointsAppExport PointsPy :public Base::PyObjectBase
 {
+  /// always start with Py_Header
+  Py_Header;
+
 public:
+  PointsPy(PointsWithProperty *pcPoints,bool Referenced=false, PyTypeObject *T = &Type);
+  static PyObject *PyMake(PyObject *, PyObject *);
 
-  /** Adds the "filename" property to this feature. */
-	virtual void InitLabel(const TDF_Label &rcLabel);
+  ~PointsPy();
 
-  /** 
-   * Loads the actual Points data into memory. If the read of data fails 
-   * the value 2 is returned, if the "filename" property is invalid 1 is
-   * returned, 0 otherwise.
-   */
-	virtual Standard_Integer Execute(TFunction_Logbook& log);
+  void setPoints(PointsWithProperty *pcPoints);
+  PointsWithProperty *getPoints(void);
 
+  //---------------------------------------------------------------------
+  // python exports goes here +++++++++++++++++++++++++++++++++++++++++++	
+  //---------------------------------------------------------------------
 
-  /** @todo */
-	virtual void Validate(TFunction_Logbook& log);
+  virtual PyObject *_repr(void);  				// the representation
+  PyObject *_getattr(char *attr);					// __getattr__ function
+  int _setattr(char *attr, PyObject *value);		// __setattr__ function
 
-  /// Returns the Name/Type of the feature
-  virtual const char *Type(void){return "PointsImport";};
+  
+  PYFUNCDEF_D(PointsPy,count)
+  PYFUNCDEF_D(PointsPy,read)
+  PYFUNCDEF_D(PointsPy,write)
+  PYFUNCDEF_D(PointsPy,translate)
+  PYFUNCDEF_D(PointsPy,rotate)
+  PYFUNCDEF_D(PointsPy,scale)
+  PYFUNCDEF_D(PointsPy,addPoint)
+  PYFUNCDEF_D(PointsPy,clear)
+  PYFUNCDEF_D(PointsPy,copy)
+
+protected:
+
+  PointsWithProperty *_pcPoints;
+  bool _bReferenced;
 };
 
-}
+} //namespace Points
 
-#endif // FEATURE_Points_IMPORT_STL_H 
+ 
+
+#endif // POINTS_PY_H 

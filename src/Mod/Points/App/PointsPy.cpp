@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (c) Juergen Riegel         <juergen.riegel@web.de>          *
+ *   Copyright (c) 2005 Werner Mayer <werner.wm.mayer@gmx.de>              *
  *                                                                         *
  *   This file is part of the FreeCAD CAx development system.              *
  *                                                                         *
@@ -24,29 +24,18 @@
 #include "PreCompiled.h"
 
 #ifndef _PreComp_
-# include <TDF_Label.hxx>
-# include <TDF_ChildIterator.hxx>
-# include <TDF_Tool.hxx>
-# include <TCollection_AsciiString.hxx>
-# include <TDF_ListIteratorOfAttributeList.hxx>
-# include <TFunction_Logbook.hxx>
-# include <TFunction_DriverTable.hxx>
-# include <TFunction_Function.hxx>
-# include <TNaming_Builder.hxx>
-# include <TNaming_NamedShape.hxx>
-# include <TopoDS_Shape.hxx>
-# include <Standard_GUID.hxx>
 #endif
 
 #include <Base/Console.h>
 #include <Base/Exception.h>
-using Base::Console;
-#include <App/Topology.h>
+#include <Base/FileInfo.h>
 
 #include "PointsPy.h"
-#include "PointsFeature.h"
-#include "PointsFeaturePy.h"
+#include "Points.h"
+#include "PointsAlgos.h"
+#include <App/Topology.h>
 
+using Base::Console;
 using namespace Points;
 
 
@@ -54,11 +43,11 @@ using namespace Points;
 // Type structure
 //--------------------------------------------------------------------------
 
-PyTypeObject PointsFeaturePy::Type = {
+PyTypeObject PointsPy::Type = {
   PyObject_HEAD_INIT(&PyType_Type)
   0,                      /*ob_size*/
-  "PointsFeaturePy",        /*tp_name*/
-  sizeof(PointsFeaturePy),  /*tp_basicsize*/
+  "PointsPy",        /*tp_name*/
+  sizeof(PointsPy),  /*tp_basicsize*/
   0,                      /*tp_itemsize*/
                           /* methods */
   PyDestructor,           /*tp_dealloc*/
@@ -77,104 +66,200 @@ PyTypeObject PointsFeaturePy::Type = {
 //--------------------------------------------------------------------------
 // Methods structure
 //--------------------------------------------------------------------------
-PyMethodDef PointsFeaturePy::Methods[] = {
-//  {"Undo",         (PyCFunction) sPyUndo,         Py_NEWARGS},
-  PYMETHODEDEF(getPoints)
-  PYMETHODEDEF(setPoints)
+PyMethodDef PointsPy::Methods[] = {
+  PYMETHODEDEF(count)
+  PYMETHODEDEF(read)
+  PYMETHODEDEF(write)
+  PYMETHODEDEF(translate)
+  PYMETHODEDEF(rotate)
+  PYMETHODEDEF(scale)
+  PYMETHODEDEF(addPoint)
+  PYMETHODEDEF(clear)
+  PYMETHODEDEF(copy)
   {NULL, NULL}    /* Sentinel */
 };
 
 //--------------------------------------------------------------------------
 // Parents structure
 //--------------------------------------------------------------------------
-PyParentObject PointsFeaturePy::Parents[] = {&PyObjectBase::Type,&App::FeaturePy::Type, NULL};     
+PyParentObject PointsPy::Parents[] = {&Base::PyObjectBase::Type, NULL};     
 
 //--------------------------------------------------------------------------
 // constructor
 //--------------------------------------------------------------------------
-PointsFeaturePy::PointsFeaturePy(PointsFeature *pcFeature, PyTypeObject *T)
-: App::FeaturePy(pcFeature, T), _pcFeature(pcFeature), _pcPointsPy(0)
+PointsPy::PointsPy(PointsWithProperty *pcPoints,bool Referenced, PyTypeObject *T)
+: Base::PyObjectBase(T), _pcPoints(pcPoints),_bReferenced(Referenced)
 {
-  Base::Console().Log("Create PointsFeaturePy: %p \n",this);
+  Base::Console().Log("Create PointsPy: %p \n",this);
 }
 
-PyObject *PointsFeaturePy::PyMake(PyObject *ignored, PyObject *args)  // Python wrapper
+PyObject *PointsPy::PyMake(PyObject *ignored, PyObject *args)  // Python wrapper
 {
-  //return new PointsFeaturePy(name, n, tau, gamma);      // Make new Python-able object
+  //return new PointsPy(name, n, tau, gamma);      // Make new Python-able object
   return 0;
 }
 
 //--------------------------------------------------------------------------
 // destructor 
 //--------------------------------------------------------------------------
-PointsFeaturePy::~PointsFeaturePy()           // Everything handled in parent
+PointsPy::~PointsPy()           // Everything handled in parent
 {
-  Base::Console().Log("Destroy PointsFeaturePy: %p \n",this);
-  if( _pcPointsPy ) _pcPointsPy->DecRef();
+  Base::Console().Log("Destroy PointsPy: %p \n",this);
+  if(!_bReferenced) delete _pcPoints;
 } 
 
 //--------------------------------------------------------------------------
-// PointsFeaturePy representation
+// PointsPy representation
 //--------------------------------------------------------------------------
-PyObject *PointsFeaturePy::_repr(void)
+PyObject *PointsPy::_repr(void)
 {
   std::stringstream a;
-  a << "PointsFeature: [ ";
-  a << "]" << std::endl;
+  a << _pcPoints->getKernel().size() << " points";
   return Py_BuildValue("s", a.str().c_str());
 }
 //--------------------------------------------------------------------------
-// PointsFeaturePy Attributes
+// PointsPy Attributes
 //--------------------------------------------------------------------------
-PyObject *PointsFeaturePy::_getattr(char *attr)     // __getattr__ function: note only need to handle new state
+PyObject *PointsPy::_getattr(char *attr)     // __getattr__ function: note only need to handle new state
 { 
   try{
     if (Base::streq(attr, "XXXX"))
       return Py_BuildValue("i",1); 
     else
-        _getattr_up(FeaturePy);
+        _getattr_up(PyObjectBase);
   }catch(...){
     Py_Error(PyExc_Exception,"Error in get Attribute");
   }
 } 
 
-int PointsFeaturePy::_setattr(char *attr, PyObject *value) // __setattr__ function: note only need to handle new state
+int PointsPy::_setattr(char *attr, PyObject *value) // __setattr__ function: note only need to handle new state
 { 
   if (Base::streq(attr, "XXXX"))           // settable new state
     return 1;
   else 
-
-    return FeaturePy::_setattr(attr, value); 
+    return PyObjectBase::_setattr(attr, value); 
 } 
+
+
+void PointsPy::setPoints(PointsWithProperty *pcPoints)
+{
+  _pcPoints = pcPoints;
+}
+
+PointsWithProperty *PointsPy::getPoints(void)
+{
+  return _pcPoints;
+}
 
 //--------------------------------------------------------------------------
 // Python wrappers
 //--------------------------------------------------------------------------
 
-PYFUNCIMP_D(PointsFeaturePy,getPoints)
+PYFUNCIMP_D(PointsPy,count)
 {
-  if(! _pcPointsPy)
-    _pcPointsPy = new PointsPy(&(_pcFeature->getPoints()),true);
-  // keeps the object alive
-  _pcPointsPy->IncRef();
-  
-  return _pcPointsPy;
+  return Py_BuildValue("i",_pcPoints->getKernel().size()); 
 }
 
-PYFUNCIMP_D(PointsFeaturePy,setPoints)
+PYFUNCIMP_D(PointsPy,write)
 {
- 	PointsPy *pcObject;
-  PyObject *pcObj;
-  if (!PyArg_ParseTuple(args, "O!", &(PointsPy::Type), &pcObj))     // convert args: Python->C 
-    return NULL;                             // NULL triggers exception 
+  const char* Name;
+  if (! PyArg_ParseTuple(args, "s",&Name))			 
+    return NULL;                         
+  PY_TRY {
+  } PY_CATCH;
 
-  pcObject = (PointsPy*)pcObj;
+  Py_Return; 
+}
 
-  // copy in the Feature Mesh
-  _pcFeature->setPoints(*(pcObject->getPoints()));
-  // and set the python object of this feature
-  if(_pcPointsPy)
-    _pcPointsPy->setPoints(&(_pcFeature->getPoints()));
+PYFUNCIMP_D(PointsPy,read)
+{
+  const char* Name;
+  if (! PyArg_ParseTuple(args, "s",&Name))			 
+    return NULL;                         
+
+  PY_TRY {
+    PointsAlgos::Load(*_pcPoints,Name);
+  } PY_CATCH;
+
+  Py_Return; 
+}
+
+PYFUNCIMP_D(PointsPy,translate)
+{
+  double x,y,z;
+  if (! PyArg_ParseTuple(args, "ddd",&x,&y,&z))			 
+    return NULL;                         
+
+  PY_TRY {
+    Matrix4D m;
+    m.SetMoveX((float)x);
+    m.SetMoveY((float)y);
+    m.SetMoveZ((float)z);
+    _pcPoints->transform(m);  
+  } PY_CATCH;
 
   Py_Return;
+}
+
+PYFUNCIMP_D(PointsPy,rotate)
+{
+  double x,y,z;
+  if (! PyArg_ParseTuple(args, "ddd",&x,&y,&z))			 
+    return NULL;                         
+
+  PY_TRY {
+    Matrix4D m;
+    m.SetRotX((float)x);
+    m.SetRotY((float)y);
+    m.SetRotZ((float)z);
+    _pcPoints->transform(m);  
+  } PY_CATCH;
+
+  Py_Return;
+}
+
+PYFUNCIMP_D(PointsPy,scale)
+{
+  double s;
+  if (! PyArg_ParseTuple(args, "d",&s))			 
+    return NULL;                         
+
+  PY_TRY {
+    Matrix4D m;
+    m.SetScaleX((float)s);
+    m.SetScaleY((float)s);
+    m.SetScaleZ((float)s);
+    _pcPoints->transform(m);  
+  } PY_CATCH;
+
+  Py_Return;
+}
+
+PYFUNCIMP_D(PointsPy,addPoint)
+{
+  double x,y,z;
+  if (! PyArg_ParseTuple(args, "ddd",&x,&y,&z))			 
+    return NULL;                         
+
+  PY_TRY {
+    _pcPoints->getKernel().push_back(Vector3D((float)x,(float)y,(float)z));
+  } PY_CATCH;
+
+  Py_Return;
+}
+
+PYFUNCIMP_D(PointsPy,clear)
+{
+  PY_TRY {
+    _pcPoints->clear();
+  } PY_CATCH;
+
+  Py_Return;
+}
+
+PYFUNCIMP_D(PointsPy,copy)
+{
+  PY_TRY {
+   return new PointsPy(new PointsWithProperty(*_pcPoints));
+  } PY_CATCH;
 }
