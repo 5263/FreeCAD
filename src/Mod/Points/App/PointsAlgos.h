@@ -21,55 +21,32 @@
  ***************************************************************************/
 
 
-#include "PreCompiled.h"
+#ifndef _PointsAlgos_h_
+#define _PointsAlgos_h_
+
 #ifndef _PreComp_
-# include <fcntl.h>
-# include <TFunction_Logbook.hxx>
-# include <ios>
 #endif
 
-#include <Base/Console.h>
-#include <Base/Exception.h>
-#include "../App/PointsAlgos.h"
-#include "../App/Points.h"
-#include "FeaturePointsImportAscii.h"
 
-
-using namespace Points;
-
-void FeaturePointsImportAscii::InitLabel(const TDF_Label &rcLabel)
+namespace Points
 {
-  Base::Console().Log("FeaturePointsImportAscii::InitLabel()\n");
-  addProperty("String","FileName");
-}
+class PointsWithProperty;
 
-Standard_Integer FeaturePointsImportAscii::Execute(TFunction_Logbook& log)
+/** The Points algorithems container class
+ */
+class PointsAppExport PointsAlgos
 {
-  Base::Console().Log("FeaturePointsImportAscii::Execute()\n");
+public:
+  /** Load a Points
+   */
+  static void Load(PointsWithProperty&, const char *FileName);
+  /** Load a Points
+   */
+  static void LoadAscii(PointsWithProperty&, const char *FileName);
 
-  try{
+};
 
-    std::string FileName = getPropertyString("FileName");
 
-    // ask for read permisson
-		if ( access(FileName.c_str(), 4) != 0 )
-    {
-      Base::Console().Log("FeaturePointsImportAscii::Execute() not able to open %s!\n",FileName.c_str());
-      return 1;
-    }
 
-     PointsAlgos::Load(getPoints(),FileName.c_str());
-
-  }
-  catch(...){
-    Base::Console().Error("FeaturePointsImportAscii::Execute() failed!");
-    return 2;
-  }
-
-  return 0;
-}
-
-void FeaturePointsImportAscii::Validate(TFunction_Logbook& log)
-{
-  Base::Console().Log("FeaturePointsImportAscii::Validate()\n");
-}
+} // namespace Points
+#endif 
