@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (c) 2004 Jürgen Riegel <juergen.riegel@web.de>              *
+ *   Copyright (c) 2004 Werner Mayer <werner.wm.mayer@gmx.de>              *
  *                                                                         *
  *   This file is part of the FreeCAD CAx development system.              *
  *                                                                         *
@@ -21,23 +21,18 @@
  ***************************************************************************/
 
 
-#ifndef APPLICATION_H
-#define APPLICATION_H
-
+#ifndef MAIN_WINDOW_H
+#define MAIN_WINDOW_H
 
 #ifndef _PreComp_
 # include <string>
 # include <vector>
 # include <qmainwindow.h>
-# include <qstringlist.h>
 # include <qworkspace.h>
 #endif
 
-#define  putpix()
-
 #include "../Base/Console.h"
 #include "../App/Application.h"
-
 
 class QComboBox;
 class QToolBar;
@@ -45,7 +40,7 @@ class QPopupMenu;
 class QToolBar;
 class QSplashScreen;
 
-namespace Gui{
+namespace Gui {
 class BaseView;
 class CustomWidgetManager;
 class CommandManager;
@@ -56,39 +51,76 @@ namespace DockWnd {
 class HelpView;
 } //namespace DockWnd
 
-/** The Applcation main class
- * This is the central class of the GUI 
- * @author Jürgen Riegel, Werner Mayer
+
+/** 
+ * The MainWindow class provides a main window with menu bar, toolbars, dockable windows,
+ * a status bar and mainly a workspace for the MDI windows.
+ * @author Werner Mayer
  */
-class GuiExport ApplicationWindow: public QMainWindow, public App::ApplicationObserver
+class GuiExport MainWindow: public QMainWindow
 {
     Q_OBJECT
  
 public:
-  /// construction
-  ApplicationWindow();
-  /// destruction
-  ~ApplicationWindow();
+  /**
+   * Constructs an empty main window. For default \a parent is 0, as there usually is
+   * no toplevel window there.
+   */
+  MainWindow( QWidget * parent = 0, const char * name = 0, WFlags f = WType_TopLevel );
+  /** Destroys the object and frees any allocated resources. */
+  ~MainWindow();
 
-  /// open a file
-  void open(const char* FileName);
-  /// import a file in the active document
-  void import(const char* FileName);
+  /** 
+   * Adds an MDI window \a view to the main window's workspace and adds a new tab
+   * to the tab bar.
+   */
+  void addWindow( MDIView* view );
 
-
-  // Observer
-  virtual void OnDocNew(App::Document* pcDoc);
-  virtual void OnDocDelete(App::Document* pcDoc);
-
-  void addWindow( Gui::MDIView* view );
-  void removeWindow( Gui::MDIView* view );
+  /**
+   * Returns a list of all MDI windows in the worpspace.
+   */
   QWidgetList windows( QWorkspace::WindowOrder order = QWorkspace::CreationOrder ) const;
+
+protected slots:
+  /**
+   * This method is called from the Qt framework automatically whenever a
+   * QTranslator object has been installed. This allows to translate all
+   * relevant user visible text.
+   */
+  virtual void languageChange();
+
+private:
+  void createStandardOperations();
+
+private slots:
+  void onShowView();
+  void onWindowActivated( QWidget* );
+  void onWindowsMenuAboutToShow();
+  void onWindowsMenuActivated( int id );
+  void onWindowDestroyed();
+  void onToggleStatusBar();
+  void onTabSelected( int i);
+
+private:
+  struct MainWindowP* d;
+
+
+
+
+
+
+
+
+
+
+
+public:
 
   /// message when a GuiDocument is about to vanish
   void onLastWindowClosed(Gui::Document* pcDoc);
 
   /// some kind of singelton
-  static ApplicationWindow* Instance;
+  static MainWindow* Instance;
 
   /** @name methodes for View handling */
   //@{
@@ -138,13 +170,12 @@ public:
   //@{	
   /// Activate a named workbench
   void activateWorkbench(const char* name);
-  bool _activateWorkbench( const char* name );
   /// update the combo box when there are changes in the workbenches
   void appendWorkbench(const char* name);
   void removeWorkbench(const char* name);
   /// returns the name of the active workbench
   QString activeWorkbench(void);
-  QStringList workbenches(void);
+  std::vector<std::string> workbenches(void);
   //@}
 
   /// MRU: recent files
@@ -153,9 +184,8 @@ public:
   /// Get macro manager
   Gui::MacroManager *macroManager(void);
 
-  /// helper which create the commands
-  void createStandardOperations();
 
+public:
   /** @name Init, Destruct an Access methodes */
   //@{
   static void initApplication(void);
@@ -171,69 +201,17 @@ private:
   static  QApplication* _pcQApp ;
   static  QSplashScreen *_splash;
 
-
-public:
-  //---------------------------------------------------------------------
-  // python exports goes here +++++++++++++++++++++++++++++++++++++++++++	
-  //---------------------------------------------------------------------
-
-  // static python wrapper of the exported functions
-  PYFUNCDEF_S(sAddWorkbench);      // adds a new workbench name to a list
-  PYFUNCDEF_S(sRemoveWorkbench);   // removes a workbench name from the list
-  PYFUNCDEF_S(sActiveWorkbench);   // retrieves the active workbench object
-  PYFUNCDEF_S(sActivateWorkbench); // activates a workbench object
-  PYFUNCDEF_S(sListWorkbenches);   // retrieves a list of all workbench objects
-  PYFUNCDEF_S(sWorkbenchModule);   // retrieves the module object
-  PYFUNCDEF_S(sGetWorkbench);      // retrieves a workbench object
-
-  PYFUNCDEF_S(sMenuAppendItems); // append items
-  PYFUNCDEF_S(sMenuRemoveItems); // remove items
-  PYFUNCDEF_S(sMenuDelete);      // delete the whole menu
-
-  PYFUNCDEF_S(sToolbarAppendItems);
-  PYFUNCDEF_S(sToolbarRemoveItems);
-  PYFUNCDEF_S(sToolbarDelete);
-
-  PYFUNCDEF_S(sCommandbarAppendItems);
-  PYFUNCDEF_S(sCommandbarRemoveItems);
-  PYFUNCDEF_S(sCommandbarDelete);
-
-  PYFUNCDEF_S(sWorkbenchAdd);
-  PYFUNCDEF_S(sWorkbenchDelete);
-  PYFUNCDEF_S(sWorkbenchActivate);
-  PYFUNCDEF_S(sWorkbenchGet);
-
-  PYFUNCDEF_S(sSendActiveView);
-
-  PYFUNCDEF_S(sUpdateGui);
-  PYFUNCDEF_S(sCreateDialog);
-
-  PYFUNCDEF_S(sRunCommand);
-  PYFUNCDEF_S(sCommandAdd);
-
-  PYFUNCDEF_S(shide);
-  PYFUNCDEF_S(sshow);
-
-  static PyMethodDef    Methods[]; 
- 
-
 signals:
   void sendQuit();
   void timeEvent();
 
 public:
-  //void onPolish();
+  void onPolish();
   bool isCustomizable () const;
   void customize ();
-
-public slots:
   void tileHorizontal();
   void tile();
   void cascade();
-  void closeActiveWindow ();
-  void closeAllWindows ();
-  void activateNextWindow ();
-  void activatePrevWindow ();
 
 protected: // Protected methods
   virtual void closeEvent ( QCloseEvent * e );
@@ -260,51 +238,10 @@ public slots:
   void onUndo();
   void onRedo();
   //@}
-protected slots:
-  virtual void languageChange();
 
-private slots:
-  void onShowView();
-  void onWindowActivated( QWidget* );
-  void onWindowsMenuAboutToShow();
-  void onWindowsMenuActivated( int id );
-  void onWindowDestroyed();
-  void onToggleStatusBar();
-  void onTabSelected( int i);
-
-private:
-  struct ApplicationWindowP* d;
 };
 
 
+} // namespace Gui
 
-/** The message box observer opens an appropriate dialog for warnings and errors
- * and writes the text also to the status bar of the main window. Normal text message
- * are written only to the status bar and log messages are ignored completely.
- * @see Console
- * @see ConsoleObserver
- * @author Jürgen Riegel
- */
-class MessageBoxObserver: public Base::ConsoleObserver
-{
-public:
-  MessageBoxObserver(ApplicationWindow *pcAppWnd);
-
-  /// get calles when a Warning is issued
-  virtual void Warning(const char *m);
-  /// get calles when a Message is issued
-  virtual void Message(const char * m);
-  /// get calles when a Error is issued
-  virtual void Error  (const char *m);
-  /// get calles when a Log Message is issued
-  virtual void Log    (const char *);
-  /// name of the observer
-  virtual const char *Name(void){return "MessageBox";}
-
-protected:
-  ApplicationWindow* _pcAppWnd;
-};
-
-} //namespace Gui
-
-#endif
+#endif // MAIN_WINDOW_H
