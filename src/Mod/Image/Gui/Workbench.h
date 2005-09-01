@@ -21,59 +21,31 @@
  ***************************************************************************/
 
 
-#ifndef TOOLBAR_MANAGER_H
-#define TOOLBAR_MANAGER_H
+#ifndef IMAGE_WORKBENCH_H
+#define IMAGE_WORKBENCH_H
 
 #ifndef _PreComp_
-# include <qstring.h>
 #endif
 
-namespace Gui {
+#include <Gui/Workbench.h>
 
-class GuiExport ToolBarItem
-{
-public:
-  ToolBarItem();
-  ToolBarItem( ToolBarItem* );
-  ~ToolBarItem();
-
-  void setCommand( const QString& );
-  QString command() const;
-
-  bool hasItems() const;
-  ToolBarItem* findItem( const QString& );
-
-  void appendItem( const ToolBarItem* );
-  bool insertItem( const ToolBarItem*, const ToolBarItem* );
-  void removeItem( const ToolBarItem* );
-
-  ToolBarItem& operator<< ( const ToolBarItem* item );
-  ToolBarItem& operator<< ( const QString& command );
-  QPtrList<ToolBarItem> getItems() const;
-
-private:
-  QString _name;
-  QPtrList<ToolBarItem> _items;
-};
+namespace ImageGui {
 
 /**
  * @author Werner Mayer
  */
-class GuiExport ToolBarManager
+class ImageGuiExport Workbench : public Gui::StdWorkbench
 {
 public:
-  static ToolBarManager* getInstance();
-  void setup( ToolBarItem* ) const;
+  Workbench();
+  virtual ~Workbench();
 
 protected:
-  ToolBarManager();
-  ~ToolBarManager();
-
-private:
-  static ToolBarManager* _instance;
+  Gui::ToolBarItem* setupToolBars() const;
+  Gui::ToolBarItem* setupCommandBars() const;
 };
 
-} // namespace Gui
+} // namespace ImageGui
 
 
-#endif // TOOLBAR_MANAGER_H 
+#endif // IMAGE_WORKBENCH_H 

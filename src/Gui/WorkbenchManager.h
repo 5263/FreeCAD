@@ -40,7 +40,8 @@ public:
   static WorkbenchManager* instance();
 
   /** Creates and returns an instance of the workbench with name \a name. If there is
-   * no such workbench 0 is returned.
+   * no such workbench 0 is returned. If a workbench with \a name has already been created
+   * then no new instance gets created but the already existing instance is returned.
    */
   Workbench* getWorkbench ( const QString& name );
   /** Activates the workbench with name \a name. */

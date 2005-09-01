@@ -21,59 +21,40 @@
  ***************************************************************************/
 
 
-#ifndef TOOLBAR_MANAGER_H
-#define TOOLBAR_MANAGER_H
+#include "PreCompiled.h"
 
 #ifndef _PreComp_
-# include <qstring.h>
 #endif
 
-namespace Gui {
+#include "Workbench.h"
+#include <Gui/ToolBarManager.h>
 
-class GuiExport ToolBarItem
+using namespace ImageGui;
+
+Workbench::Workbench()
 {
-public:
-  ToolBarItem();
-  ToolBarItem( ToolBarItem* );
-  ~ToolBarItem();
+}
 
-  void setCommand( const QString& );
-  QString command() const;
-
-  bool hasItems() const;
-  ToolBarItem* findItem( const QString& );
-
-  void appendItem( const ToolBarItem* );
-  bool insertItem( const ToolBarItem*, const ToolBarItem* );
-  void removeItem( const ToolBarItem* );
-
-  ToolBarItem& operator<< ( const ToolBarItem* item );
-  ToolBarItem& operator<< ( const QString& command );
-  QPtrList<ToolBarItem> getItems() const;
-
-private:
-  QString _name;
-  QPtrList<ToolBarItem> _items;
-};
-
-/**
- * @author Werner Mayer
- */
-class GuiExport ToolBarManager
+Workbench::~Workbench()
 {
-public:
-  static ToolBarManager* getInstance();
-  void setup( ToolBarItem* ) const;
+}
 
-protected:
-  ToolBarManager();
-  ~ToolBarManager();
+Gui::ToolBarItem* Workbench::setupToolBars() const
+{
+  Gui::ToolBarItem* root = StdWorkbench::setupToolBars();
+  Gui::ToolBarItem* part = new Gui::ToolBarItem( root );
+  part->setCommand( QObject::tr("Image") );
+  *part << "Image_Open";
+  return root;
+}
 
-private:
-  static ToolBarManager* _instance;
-};
+Gui::ToolBarItem* Workbench::setupCommandBars() const
+{
+  // Part tools
+  Gui::ToolBarItem* root = new Gui::ToolBarItem;
+  Gui::ToolBarItem* img = new Gui::ToolBarItem( root );
+  img->setCommand( QObject::tr("Image") );
+  *img << "Image_Open";
+  return root;
+}
 
-} // namespace Gui
-
-
-#endif // TOOLBAR_MANAGER_H 
