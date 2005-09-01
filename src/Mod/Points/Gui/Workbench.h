@@ -21,52 +21,31 @@
  ***************************************************************************/
 
 
-#include "PreCompiled.h"
+#ifndef POINTS_WORKBENCH_H
+#define POINTS_WORKBENCH_H
 
 #ifndef _PreComp_
 #endif
 
-#include "Workbench.h"
-#include <Gui/MenuManager.h>
-#include <Gui/ToolBarManager.h>
+#include <Gui/Workbench.h>
 
-using namespace MeshGui;
+namespace PointsGui {
 
-Workbench::Workbench()
+/**
+ * @author Werner Mayer
+ */
+class PointsGuiExport Workbench : public Gui::StdWorkbench
 {
-}
+public:
+  Workbench();
+  virtual ~Workbench();
 
-Workbench::~Workbench()
-{
-}
+protected:
+  Gui::ToolBarItem* setupToolBars() const;
+  Gui::ToolBarItem* setupCommandBars() const;
+};
 
-Gui::MenuItem* Workbench::setupMenuBar() const
-{
-  Gui::MenuItem* root = StdWorkbench::setupMenuBar();
-  Gui::MenuItem* item = root->findItem( QObject::tr("&Windows"));
-  Gui::MenuItem* mesh = new Gui::MenuItem;
-  root->insertItem( item, mesh );
-  mesh->setCommand( QObject::tr("&Mesh") );
-  *mesh << "Mesh_Import" << "Mesh_VertexCurvature" << "Separator" << "Mesh_ExMakeMesh" << "Mesh_ExMakeTool" << "Mesh_ExMakeUnion"; 
-  return root;
-}
+} // namespace PointsGui
 
-Gui::ToolBarItem* Workbench::setupToolBars() const
-{
-  Gui::ToolBarItem* root = StdWorkbench::setupToolBars();
-  Gui::ToolBarItem* mesh = new Gui::ToolBarItem(root);
-  mesh->setCommand( QObject::tr("Mesh Tools") );
-  *mesh << "Mesh_Import" << "Mesh_VertexCurvature" << "Separator" << "Mesh_ExMakeMesh" << "Mesh_ExMakeTool" << "Mesh_ExMakeUnion"; 
-  return root;
-}
 
-Gui::ToolBarItem* Workbench::setupCommandBars() const
-{
-  // Mesh tools
-  Gui::ToolBarItem* root = new Gui::ToolBarItem;
-  Gui::ToolBarItem* mesh = new Gui::ToolBarItem( root );
-  mesh->setCommand( QObject::tr("Mesh Tools") );
-  *mesh << "Std_New" << "Mesh_Import" << "Separator" << "Mesh_ExMakeMesh" << "Mesh_ExMakeTool" << "Mesh_ExMakeUnion";
-  return root;
-}
-
+#endif // POINTS_WORKBENCH_H 

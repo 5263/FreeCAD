@@ -27,10 +27,9 @@
 #endif
 
 #include "Workbench.h"
-#include <Gui/MenuManager.h>
 #include <Gui/ToolBarManager.h>
 
-using namespace MeshGui;
+using namespace PointsGui;
 
 Workbench::Workbench()
 {
@@ -40,33 +39,22 @@ Workbench::~Workbench()
 {
 }
 
-Gui::MenuItem* Workbench::setupMenuBar() const
-{
-  Gui::MenuItem* root = StdWorkbench::setupMenuBar();
-  Gui::MenuItem* item = root->findItem( QObject::tr("&Windows"));
-  Gui::MenuItem* mesh = new Gui::MenuItem;
-  root->insertItem( item, mesh );
-  mesh->setCommand( QObject::tr("&Mesh") );
-  *mesh << "Mesh_Import" << "Mesh_VertexCurvature" << "Separator" << "Mesh_ExMakeMesh" << "Mesh_ExMakeTool" << "Mesh_ExMakeUnion"; 
-  return root;
-}
-
 Gui::ToolBarItem* Workbench::setupToolBars() const
 {
   Gui::ToolBarItem* root = StdWorkbench::setupToolBars();
-  Gui::ToolBarItem* mesh = new Gui::ToolBarItem(root);
-  mesh->setCommand( QObject::tr("Mesh Tools") );
-  *mesh << "Mesh_Import" << "Mesh_VertexCurvature" << "Separator" << "Mesh_ExMakeMesh" << "Mesh_ExMakeTool" << "Mesh_ExMakeUnion"; 
+  Gui::ToolBarItem* pnt = new Gui::ToolBarItem( root );
+  pnt->setCommand( QObject::tr("PointsTools") );
+  *pnt << "Points_Test";
   return root;
 }
 
 Gui::ToolBarItem* Workbench::setupCommandBars() const
 {
-  // Mesh tools
+  // point tools
   Gui::ToolBarItem* root = new Gui::ToolBarItem;
-  Gui::ToolBarItem* mesh = new Gui::ToolBarItem( root );
-  mesh->setCommand( QObject::tr("Mesh Tools") );
-  *mesh << "Std_New" << "Mesh_Import" << "Separator" << "Mesh_ExMakeMesh" << "Mesh_ExMakeTool" << "Mesh_ExMakeUnion";
+  Gui::ToolBarItem* pnt = new Gui::ToolBarItem( root );
+  pnt->setCommand( QObject::tr("PointsTools") );
+  *pnt << "Points_Test";
   return root;
 }
 
