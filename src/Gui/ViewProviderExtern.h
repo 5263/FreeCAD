@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (c) Jürgen Riegel          (juergen.riegel@web.de) 2005     *
+ *   Copyright (c) 2004 Jürgen Riegel <juergen.riegel@web.de>              *
  *                                                                         *
  *   This file is part of the FreeCAD CAx development system.              *
  *                                                                         *
@@ -21,41 +21,56 @@
  ***************************************************************************/
 
 
-#include "../Base/PyExportImp.h"
+#ifndef __ViewProviderInventorExtern_H__
+#define __ViewProviderInventorExtern_H__
+
+#include "ViewProvider.h"
+
+
+class SoMaterial;
+
+namespace App
+{
+  class Material;
+}
 
 
 namespace Gui {
-/** The Document python class 
- */
-class GuiExport DocumentPy :public Base::PyObjectBase
+
+
+class GuiExport ViewProviderInventorExtern:public ViewProviderInventor
 {
-	/// always start with Py_Header
-	Py_Header;
-
 public:
-  DocumentPy(Gui::Document *pcDoc, PyTypeObject *T = &Type);
-	static PyObject *PyMake(PyObject *, PyObject *);
+  /// constructor.
+  ViewProviderInventorExtern();
 
-	~DocumentPy();
+  /// destructor.
+  virtual ~ViewProviderInventorExtern();
 
-	//---------------------------------------------------------------------
-	// python exports goes here +++++++++++++++++++++++++++++++++++++++++++	
-	//---------------------------------------------------------------------
+  void setModeByString(const char* name, const char* ivFragment);
+  void setModeByFile(const char* name, const char* ivFileName);
+  void setModeBySoInput(const char* name, SoInput &ivFileInput);
 
-	virtual PyObject *_repr(void);  				// the representation
-	PyObject *_getattr(char *attr);					// __getattr__ function
-	int _setattr(char *attr, PyObject *value);		// __setattr__ function
-//	PyObject *PyDocType(PyObject *args);		// Python wrapper
-//	static PyObject *sPyDocType(PyObject *self, PyObject *args, PyObject *kwd){return ((DocumentPy*)self)->PyDocType(args);};
-	PYFUNCDEF_D(DocumentPy,hide)
-	PYFUNCDEF_D(DocumentPy,show)
-	PYFUNCDEF_D(DocumentPy,setPos)
-	PYFUNCDEF_D(DocumentPy,addAnnotation)
+  
+  virtual std::vector<std::string> getModes(void);
 
-private:
-  Gui::Document *_pcDoc;
+  virtual void update(const ChangeType&){}
+
+  /// Set the transparency
+  virtual void setTransparency(float);
+
+protected:
+
+  std::vector<std::string> modes;
 
 };
 
-} // namespace App
+
+
+
+
+
+} // namespace Gui
+
+#endif // __ViewProviderInventorExtern_H__
 

@@ -64,7 +64,7 @@ public:
   PYFUNCDEF_D(PointsPy,read)
   PYFUNCDEF_D(PointsPy,write)
   PYFUNCDEF_D(PointsPy,translate)
-  PYFUNCDEF_D(PointsPy,rotate)
+//  PYFUNCDEF_D(PointsPy,rotate)
   PYFUNCDEF_D(PointsPy,scale)
   PYFUNCDEF_D(PointsPy,addPoint)
   PYFUNCDEF_D(PointsPy,clear)
