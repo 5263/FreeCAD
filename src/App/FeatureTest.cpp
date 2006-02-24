@@ -20,69 +20,44 @@
  *                                                                         *
  ***************************************************************************/
 
-
+ 
 #include "PreCompiled.h"
-
 #ifndef _PreComp_
-#	include <assert.h>
 #endif
 
-/// Here the FreeCAD includes sorted by Base,App,Gui......
-#include "Property.h"
-#include "PropertyContainer.h"
+
+#include <Base/Console.h>
+#include "FeatureTest.h"
+
 
 using namespace App;
 
 
-//**************************************************************************
-//**************************************************************************
-// Property
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+PROPERTY_SOURCE(App::FeatureTest, App::Feature)
 
-TYPESYSTEM_SOURCE(App::Property , Base::Persistance);
 
-//**************************************************************************
-// Construction/Destruction
-
-// here the implemataion! description should take place in the header file!
-Property::Property()
-:father(0)
+FeatureTest::FeatureTest()
 {
+  ADD_PROPERTY(Integer,(4711)  );
+  ADD_PROPERTY(Float  ,(47.11f) );
+  ADD_PROPERTY(Bool   ,(true)  );
+  ADD_PROPERTY(String ,("4711"));
 
-}
+  ADD_PROPERTY(Link   ,(0));
 
-Property::~Property()
-{
-
-}
-
-const char* Property::getName(void)
-{
-  return father->getName(this);
+  ADD_PROPERTY(Vector ,(1.0,2.0,3.0));
+  ADD_PROPERTY(Matrix ,(Base::Matrix4D(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0,12.0,13.0,14.0,15.0,16.0)));
+  
+  ADD_PROPERTY(String ,("empty"));
 }
 
 
-void Property::setContainer(PropertyContainer *Father)
+int FeatureTest::execute(void)
 {
-  father = Father;
-}
 
-void Property::hasSetValue(void)
-{
-  if(father)
-    father->onChanged(this);
-}
 
-void Property::aboutToSetValue(void)
-{
-  if(father)
-    father->onBevorChange(this);
+  return 0;
 }
 
 
-//**************************************************************************
-//**************************************************************************
-// Property
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-TYPESYSTEM_SOURCE_ABSTRACT(App::PropertyLists , Base::Persistance);

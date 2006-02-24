@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (c) Jürgen Riegel          (juergen.riegel@web.de) 2002     *
+ *   Copyright (c) Jürgen Riegel          (juergen.riegel@web.de) 2006     *
  *                                                                         *
  *   This file is part of the FreeCAD CAx development system.              *
  *                                                                         *
@@ -21,68 +21,52 @@
  ***************************************************************************/
 
 
-#include "PreCompiled.h"
 
-#ifndef _PreComp_
-#	include <assert.h>
-#endif
-
-/// Here the FreeCAD includes sorted by Base,App,Gui......
-#include "Property.h"
-#include "PropertyContainer.h"
-
-using namespace App;
+#ifndef __FEATURETEST_H__
+#define __FEATURETEST_H__
 
 
-//**************************************************************************
-//**************************************************************************
-// Property
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#include "Feature.h"
+#include "PropertyStandard.h"
+#include "PropertyGeo.h"
+#include "PropertyLinks.h"
 
-TYPESYSTEM_SOURCE(App::Property , Base::Persistance);
-
-//**************************************************************************
-// Construction/Destruction
-
-// here the implemataion! description should take place in the header file!
-Property::Property()
-:father(0)
+namespace App
 {
 
-}
 
-Property::~Property()
+class FeatureTest :public Feature
 {
+  PROPERTY_HEADER(App::FeatureTest);
 
-}
+public:
+  FeatureTest();
 
-const char* Property::getName(void)
-{
-  return father->getName(this);
-}
+  // Standard Properties (PorpertyStandard.h)
+  App::PropertyInteger Integer;
+  App::PropertyFloat   Float;
+  App::PropertyBool    Bool;
+  App::PropertyString  String;
+ 
+  // Standard Properties (PropertyLinks.h)
+  App::PropertyLink    Link;
+
+  // Standard Properties (PropertyGeo.h)
+  App::PropertyMatrix  Matrix;
+  App::PropertyVector  Vector;
+
+  App::PropertyString  ExecResult;
+  
+  
+  /** @name methods overide Feature */
+  //@{
+  /// recalculate the Feature
+  virtual int execute(void);
+  //@}
+};
 
 
-void Property::setContainer(PropertyContainer *Father)
-{
-  father = Father;
-}
 
-void Property::hasSetValue(void)
-{
-  if(father)
-    father->onChanged(this);
-}
+} //namespace App
 
-void Property::aboutToSetValue(void)
-{
-  if(father)
-    father->onBevorChange(this);
-}
-
-
-//**************************************************************************
-//**************************************************************************
-// Property
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-TYPESYSTEM_SOURCE_ABSTRACT(App::PropertyLists , Base::Persistance);
+#endif // __FEATURETEST_H__
