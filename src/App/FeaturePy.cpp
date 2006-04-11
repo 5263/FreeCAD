@@ -74,7 +74,7 @@ PyTypeObject App::FeaturePy::Type = {
   0,                                                /* tp_as_buffer */
   /* --- Flags to define presence of optional/expanded features */
   Py_TPFLAGS_BASETYPE|Py_TPFLAGS_HAVE_CLASS,        /*tp_flags */
-  "About PyObjectBase",                             /*tp_doc */
+  "About FeaturePy",                                /*tp_doc */
   0,                                                /*tp_traverse */
   0,                                                /*tp_clear */
   0,                                                /*tp_richcompare */
@@ -84,7 +84,7 @@ PyTypeObject App::FeaturePy::Type = {
   0,                                                /*tp_methods */
   0,                                                /*tp_members */
   0,                                                /*tp_getset */
-  &Base::PyObjectBase::Type,                        /*tp_base */
+  &App::DocumentObjectPy::Type,                     /*tp_base */
   0,                                                /*tp_dict */
   0,                                                /*tp_descr_get */
   0,                                                /*tp_descr_set */
@@ -107,6 +107,7 @@ PyTypeObject App::FeaturePy::Type = {
 PyMethodDef App::FeaturePy::Methods[] = {
 // PyObjectBase
   PYMETHODEDEF(isA)
+// DocumentObjectPy
 // FeaturePy 
 	PYMETHODEDEF(setModified)
 	PYMETHODEDEF(setModifiedView)
@@ -118,13 +119,13 @@ PyMethodDef App::FeaturePy::Methods[] = {
 //--------------------------------------------------------------------------
 // Parents structure
 //--------------------------------------------------------------------------
-PyParentObject App::FeaturePy::Parents[] = { &FeaturePy::Type, &PyObjectBase::Type, NULL};
+PyParentObject App::FeaturePy::Parents[] = { &FeaturePy::Type, &DocumentObjectPy::Type, &PyObjectBase::Type, NULL};
 
 //--------------------------------------------------------------------------
 //t constructor
 //--------------------------------------------------------------------------
 App::FeaturePy::FeaturePy(AbstractFeature *pcFeature, PyTypeObject *T)
-: PyObjectBase( T), _pcFeature(pcFeature),solidMaterialPy(0),lineMaterialPy(0),pointMaterialPy(0)
+: DocumentObjectPy(pcFeature, T), _pcFeature(pcFeature),solidMaterialPy(0),lineMaterialPy(0),pointMaterialPy(0)
 {
 //	Base::Console().Log("Create FeaturePy: %p \n",this);
 }
@@ -214,7 +215,7 @@ PyObject *FeaturePy::_getattr(char *attr)				// __getattr__ function: note only 
         return prop->getPyObject();
       }
       else
-			  _getattr_up(PyObjectBase); 						
+			  _getattr_up(DocumentObjectPy); 						
     }
 	}PY_CATCH;
 
@@ -282,7 +283,7 @@ int FeaturePy::_setattr(char *attr, PyObject *value) 	// __setattr__ function: n
       {
         prop->setPyObject(value);
       }else
-			  return PyObjectBase::_setattr(attr, value); 						
+			  return DocumentObjectPy::_setattr(attr, value); 						
   }
   return 0;
 } 
@@ -342,7 +343,7 @@ PYFUNCIMP_D(FeaturePy,setModifiedView)
 
 PYFUNCIMP_D(FeaturePy,isValid)
 {
-  if(_pcFeature->isValid() && !_pcFeature->MustExecute())
+  if(_pcFeature->isValid() && !_pcFeature->mustExecute())
     {Py_INCREF(Py_True); return Py_True;}
   else
     {Py_INCREF(Py_False); return Py_False;}

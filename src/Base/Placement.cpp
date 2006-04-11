@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (c) Riegel         <juergen.riegel@web.de>                  *
+ *   Copyright (c) 2006 Juergen Riegel                                     *
  *                                                                         *
  *   This file is part of the FreeCAD CAx development system.              *
  *                                                                         *
@@ -21,62 +21,15 @@
  ***************************************************************************/
 
 
-#ifndef __Persistance_H__
-#define __Persistance_H__
-
-// Std. configurations
-
-
+#include "PreCompiled.h"
 #ifndef _PreComp_
-# include <string>
-# include <map>
+# include <stdio.h>
+# include <string.h>
+# include <math.h>
 #endif
 
-#include "Base.h"
-#include "zipios/zipinputstream.h"
 
-namespace Base
-{
-  typedef std::istream Reader;
-  class Writer;
-  class XMLReader;
+#include "Placement.h"
 
-/// Persistance class and root of the type system
-class BaseExport Persistance : public BaseClass
-{
-
-  TYPESYSTEM_HEADER();
-
-public: 
-  /// This method is used to get the size of objects
-  virtual unsigned int size (void){
-    assert(0);
-    return 0;
-  } 
-  /// This method is used to save properties or very small amounts of data to an XML document.
-  virtual void Save (Writer &writer) const {
-    assert(0);
-  } 
-  /// This method is used to restore properties from an XML document.
-  virtual void Restore(XMLReader &reader){
-    assert(0);
-  } 
-  /// This method is used to save large amounts of data to a binary file.
-  virtual void SaveDocFile (Writer &writer) const{
-    assert(0);
-  } 
-  /// This method is used to restore large amounts of data from a binary file.
-  virtual void RestoreDocFile(Reader &reader){
-    assert(0);
-  } 
-
-};
-
-
-
-
-
-} //namespace Base
-
-#endif // __Persistance_H__
+using namespace Base;
 

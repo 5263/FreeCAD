@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (c) Riegel         <juergen.riegel@web.de>                  *
+ *   Copyright (c) 2006 Juergen Riegel                                     *
  *                                                                         *
  *   This file is part of the FreeCAD CAx development system.              *
  *                                                                         *
@@ -21,62 +21,42 @@
  ***************************************************************************/
 
 
-#ifndef __Persistance_H__
-#define __Persistance_H__
+#ifndef __Placement_H
+#define __Placement_H
 
-// Std. configurations
+//#include "Definitions.h"
+#include <assert.h>
+#include <math.h>
+#include <stdio.h>
+
+#include "Vector3D.h"
 
 
-#ifndef _PreComp_
-# include <string>
-# include <map>
-#endif
+namespace Base {
 
-#include "Base.h"
-#include "zipios/zipinputstream.h"
 
-namespace Base
+/**
+ * The Matrix4D class.
+ */
+class BaseExport Placement
 {
-  typedef std::istream Reader;
-  class Writer;
-  class XMLReader;
+public:
+  /// default constructor
+  Placement(void){};
+  /// Destruction
+  virtual ~Placement () {};
 
-/// Persistance class and root of the type system
-class BaseExport Persistance : public BaseClass
-{
+  const Vector3<double> &getPos(void) const {return _Pos;}
+  const double *getRotateion(void) const {return _q;}
 
-  TYPESYSTEM_HEADER();
-
-public: 
-  /// This method is used to get the size of objects
-  virtual unsigned int size (void){
-    assert(0);
-    return 0;
-  } 
-  /// This method is used to save properties or very small amounts of data to an XML document.
-  virtual void Save (Writer &writer) const {
-    assert(0);
-  } 
-  /// This method is used to restore properties from an XML document.
-  virtual void Restore(XMLReader &reader){
-    assert(0);
-  } 
-  /// This method is used to save large amounts of data to a binary file.
-  virtual void SaveDocFile (Writer &writer) const{
-    assert(0);
-  } 
-  /// This method is used to restore large amounts of data from a binary file.
-  virtual void RestoreDocFile(Reader &reader){
-    assert(0);
-  } 
+  Vector3<double> _Pos;
+  double _q[4];
 
 };
 
 
+} // namespace Mesh
 
+#endif // __Placement_H 
 
-
-} //namespace Base
-
-#endif // __Persistance_H__
 

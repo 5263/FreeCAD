@@ -20,83 +20,65 @@
  *                                                                         *
  ***************************************************************************/
 
+ 
 
-#include "PreCompiled.h"
+
+#ifndef _DocumentObjectPy_h_
+#define _DocumentObjectPy_h_
 
 #ifndef _PreComp_
-#	include <assert.h>
 #endif
 
-/// Here the FreeCAD includes sorted by Base,App,Gui......
-#include "Property.h"
-#include "PropertyContainer.h"
+#include <Base/PyExportImp.h>
 
-using namespace App;
-
-
-//**************************************************************************
-//**************************************************************************
-// Property
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-TYPESYSTEM_SOURCE(App::Property , Base::Persistance);
-
-//**************************************************************************
-// Construction/Destruction
-
-// here the implemataion! description should take place in the header file!
-Property::Property()
-:father(0)
+namespace App
 {
 
-}
+class DocumentObject;
 
-Property::~Property()
+
+//===========================================================================
+// DocumentObjectPy - Python wrapper
+//===========================================================================
+
+/** The DocTypeStd python class
+ */
+class AppExport DocumentObjectPy :public Base::PyObjectBase
 {
+	/// always start with Py_Header
+	Py_Header;
 
-}
+public:
+	DocumentObjectPy(DocumentObject *pcDocumentObject, PyTypeObject *T = &Type);
+	static PyObject *PyMake(PyObject *, PyObject *);
+	~DocumentObjectPy();
 
-const char* Property::getName(void) const
-{
-  return father->getName(this);
-}
+	//---------------------------------------------------------------------
+	// python exports goes here +++++++++++++++++++++++++++++++++++++++++++
+	//---------------------------------------------------------------------
+
+	virtual PyObject *_repr(void);  				// the representation
+	PyObject *_getattr(char *attr);					// __getattr__ function
+	int _setattr(char *attr, PyObject *value);		// __setattr__ function
+//	PYFUNCDEF_D(FeaturePy,setModified)
 
 
-void Property::setContainer(PropertyContainer *Father)
-{
-  father = Father;
-}
+	//---------------------------------------------------------------------
+	// helpers for python exports goes here +++++++++++++++++++++++++++++++
+	//---------------------------------------------------------------------
+  DocumentObject *getDocumentObject(void){return _pcDocumentObject;}
+  
 
-void Property::hasSetValue(void)
-{
-  if(father)
-    father->onChanged(this);
-}
+private:
+  DocumentObject *_pcDocumentObject;
 
-void Property::aboutToSetValue(void)
-{
-  if(father)
-    father->onBevorChange(this);
-}
 
-Property *Property::Copy(void) const 
-{
-  // have to be reimplemented by a subclass!
-  assert(0);
-  return 0;
-}
-
-void Property::Paste(const Property &from)
-{
-  // have to be reimplemented by a subclass!
-  assert(0);
-}
+};
 
 
 
-//**************************************************************************
-//**************************************************************************
-// PropertyLists
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+} //namespace App
 
-TYPESYSTEM_SOURCE_ABSTRACT(App::PropertyLists , Base::Persistance);
+
+
+#endif
