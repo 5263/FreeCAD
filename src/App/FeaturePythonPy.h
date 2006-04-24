@@ -20,37 +20,37 @@
  *                                                                         *
  ***************************************************************************/
 
- 
 
 
-#ifndef _FeaturePy_h_
-#define _FeaturePy_h_
+
+#ifndef _FeaturePropertyPy_h_
+#define _FeaturePropertyPy_h_
 
 #include <Base/PyExportImp.h>
-#include "DocumentObjectPy.h"
+#include "FeaturePy.h"
 
 namespace App
 {
 
-class AbstractFeature;
+class FeaturePython;
 class MaterialPy;
 
 //===========================================================================
-// FeaturePy - Python wrapper
+// FeaturePythonPy - Python wrapper
 //===========================================================================
 
 /** The DocTypeStd python class
  */
-class AppExport FeaturePy :public DocumentObjectPy
+class AppExport FeaturePythonPy :public FeaturePy
 {
 	/// always start with Py_Header
 	Py_Header;
 
 protected:
-	~FeaturePy();
+	~FeaturePythonPy();
 
 public:
-	FeaturePy(AbstractFeature *pcFeature, PyTypeObject *T = &Type);
+	FeaturePythonPy(FeaturePython *pcFeature, PyTypeObject *T = &Type);
 	static PyObject *PyMake(PyObject *, PyObject *);
 
 	//---------------------------------------------------------------------
@@ -60,23 +60,12 @@ public:
 	virtual PyObject *_repr(void);  				// the representation
 	PyObject *_getattr(char *attr);					// __getattr__ function
 	int _setattr(char *attr, PyObject *value);		// __setattr__ function
-	PYFUNCDEF_D(FeaturePy,setModified)
-	PYFUNCDEF_D(FeaturePy,setModifiedView)
-	PYFUNCDEF_D(FeaturePy,isValid)
 
-
-	//---------------------------------------------------------------------
-	// helpers for python exports goes here +++++++++++++++++++++++++++++++
-	//---------------------------------------------------------------------
-  AbstractFeature *getFeature(void){return _pcFeature;}
+  // additional methodes
+  PYFUNCDEF_D(FeaturePythonPy,addProperty)
+	PYFUNCDEF_D(FeaturePythonPy,setClass)
   
-
-protected:
-  AbstractFeature *_pcFeature;
-
-  MaterialPy* solidMaterialPy;
-  MaterialPy* lineMaterialPy;
-  MaterialPy* pointMaterialPy;
+private:
 
 };
 
