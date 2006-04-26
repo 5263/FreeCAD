@@ -27,9 +27,6 @@
 
 
 #include "Feature.h"
-#include "PropertyStandard.h"
-#include "PropertyGeo.h"
-#include "PropertyLinks.h"
 
 namespace App
 {
@@ -51,8 +48,13 @@ public:
   /// recalculate the Feature
   virtual int execute(void);
   /// returns the type name of the ViewProvider
-  //FIXME: Propably it makes sense to have a view provider for unittests (e.g. Gui::ViewProviderTest)
-  virtual const char* getViewProviderName(void){return "Gui::ViewProviderDocumentObject";}
+  virtual const char* getViewProviderName(void){return "Gui::ViewProviderPythonFeature";}
+  /// get all properties of the class (including parent)
+  virtual void getPropertyMap(std::map<std::string,Property*> &Map) const;
+  /// find a property by its name
+  virtual Property *getPropertyByName(const char* name) const;
+  /// get the name of a property
+  virtual const char* getName(const Property* prop) const;
   //@}
 
   void addDynamicProperty(const char* type, const char* name=0);
@@ -61,15 +63,11 @@ public:
 
 	virtual Base::PyObjectBase *GetPyObject(void);
 
-  friend FeaturePythonPy;
+  friend class FeaturePythonPy;
 
 private:
-  std::map<std::string,Property*> objectProperies;
-  //PropertyData objectProperies;
-
+  std::map<std::string,Property*> objectProperties;
 };
-
-
 
 } //namespace App
 

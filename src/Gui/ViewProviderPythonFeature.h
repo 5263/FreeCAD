@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (c) Jürgen Riegel          (juergen.riegel@web.de) 2002     *
+ *   Copyright (c) 2006 Werner Mayer <werner.wm.mayer@gmx.de>              *
  *                                                                         *
  *   This file is part of the FreeCAD CAx development system.              *
  *                                                                         *
@@ -21,59 +21,30 @@
  ***************************************************************************/
 
 
+#ifndef GUI_VIEWPROVIDER_PYTHON_FEATURE_H
+#define GUI_VIEWPROVIDER_PYTHON_FEATURE_H
+
+#include "ViewProviderFeature.h"
 
 
-#ifndef _FeaturePropertyPy_h_
-#define _FeaturePropertyPy_h_
+namespace Gui {
 
-#include <Base/PyExportImp.h>
-#include "FeaturePy.h"
-
-namespace App
+class GuiExport ViewProviderPythonFeature : public ViewProviderDocumentObject
 {
-
-class FeaturePython;
-class MaterialPy;
-
-//===========================================================================
-// FeaturePythonPy - Python wrapper
-//===========================================================================
-
-/** The DocTypeStd python class
- */
-class AppExport FeaturePythonPy :public FeaturePy
-{
-	/// always start with Py_Header
-	Py_Header;
-
-protected:
-	~FeaturePythonPy();
+  PROPERTY_HEADER(Gui::ViewProviderPythonFeature);
 
 public:
-	FeaturePythonPy(FeaturePython *pcFeature, PyTypeObject *T = &Type);
-	static PyObject *PyMake(PyObject *, PyObject *);
+  /// constructor.
+  ViewProviderPythonFeature();
+  /// destructor.
+  virtual ~ViewProviderPythonFeature();
 
-	//---------------------------------------------------------------------
-	// python exports goes here +++++++++++++++++++++++++++++++++++++++++++
-	//---------------------------------------------------------------------
-
-	virtual PyObject *_repr(void);  				// the representation
-	PyObject *_getattr(char *attr);					// __getattr__ function
-	int _setattr(char *attr, PyObject *value);		// __setattr__ function
-
-  // additional methodes
-  PYFUNCDEF_D(FeaturePythonPy,addProperty)
-	PYFUNCDEF_D(FeaturePythonPy,setClass)
-	PYFUNCDEF_D(FeaturePythonPy,execute)
-  
-private:
-  PyObject* executeCallback;
+  // Returns the icon
+  QPixmap getIcon() const;
 };
 
 
+} // namespace Gui
 
-} //namespace App
+#endif // GUI_VIEWPROVIDER_PYTHON_FEATURE_H
 
-
-
-#endif
