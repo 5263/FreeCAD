@@ -71,12 +71,19 @@ def decodeName(name):
     return decodedName
 
 def deformat(text):
-    print text
     "removes weird formats in texts and wipes UTF characters"
     # remove ACAD string formatation
     #t = re.sub('{([^!}]([^}]|\n)*)}', '', text)
     t = text.strip("{}")
     t = re.sub("\\\.*?;","",t)
+    # replace UTF codes
+    t = re.sub("\\\\U\+00e9","e",t)
+    t = re.sub("\\\\U\+00e1","a",t)
+    t = re.sub("\\\\U\+00e7","c",t)
+    t = re.sub("\\\\U\+00e3","a",t)
+    t = re.sub("\\\\U\+00e0","a",t)
+    t = re.sub("\\\\U\+00c1","A",t)
+    t = re.sub("\\\\U\+00ea","e",t)
     # replace non-UTF chars
     t = re.sub("ã","a",t)
     t = re.sub("ç","c",t)
@@ -88,6 +95,10 @@ def deformat(text):
     t = re.sub("è","e",t)
     t = re.sub("ê","e",t)
     t = re.sub("í","i",t)
+    t = re.sub("Á","A",t)
+    t = re.sub("À","A",t)
+    t = re.sub("É","E",t)
+    t = re.sub("È","E",t)
     # replace degrees, diameters chars
     t = re.sub('%%d','°',t) 
     t = re.sub('%%c','Ø',t)
@@ -598,7 +609,7 @@ def drawBlock(blockref,num=None):
 
 def drawInsert(insert,num=None):
     if blockshapes.has_key(insert):
-        shape = blockshapes[insert.block]
+        shape = blockshapes[insert.block].copy()
     else:
         shape = None
         for b in drawing.blocks.data:
@@ -613,7 +624,7 @@ def drawInsert(insert,num=None):
         rot = math.radians(insert.rotation)
         scale = insert.scale
         tsf = FreeCAD.Matrix()
-        tsf.scale(vec(scale))
+        tsf.scale(scale[0],scale[1],0) # for some reason z must be 0 to work
         tsf.rotateZ(rot)
         shape = shape.transformGeometry(tsf)
         shape.translate(pos)
@@ -687,7 +698,21 @@ def addText(text,attrib=False):
         lay.addObject(newob)
         val = deformat(val)
         #val = val.decode("Latin1").encode("Latin1")
-        newob.LabelText = val
+        rx = rawValue(text,11)
+        ry = rawValue(text,21)
+        rz = rawValue(text,31)
+        if rx or ry or rz:
+            xv = Vector(rx,ry,rz)
+            if not fcvec.isNull(xv):
+                ax = fcvec.neg(xv.cross(Vector(1,0,0)))
+                if fcvec.isNull(ax):
+                    ax = Vector(0,0,1)
+                ang = -math.degrees(fcvec.angle(xv,Vector(1,0,0),ax))
+                Draft.rotate(newob,ang,axis=ax)
+        elif hasattr(text,"rotation"):
+            if text.rotation:
+                Draft.rotate(newob,text.rotation)
+        newob.LabelText = val.split("\n")
         newob.Position = pos
         if gui:
             if fmt.stdSize:
@@ -962,9 +987,9 @@ def processdxf(document,filename):
                     p1 = FreeCAD.Vector(x2,y2,z2)
                     p2 = FreeCAD.Vector(x3,y3,z3)
                     if align == 0:
-                        if angle == 0:
+                        if angle in [0,180]:
                             p2 = FreeCAD.Vector(x3,y2,z2)
-                        else:
+                        elif angle in [90,270]:
                             p2 = FreeCAD.Vector(x2,y3,z2)
                     newob = doc.addObject("App::FeaturePython","Dimension")
                     lay.addObject(newob)
@@ -1014,7 +1039,9 @@ def processdxf(document,filename):
         for leader in leaders:
             if fmt.dxflayout or (not rawValue(leader,67)):
                 pts = []
+                print leader.data
                 for d in leader.data:
+                    print d
                     if d[0] == 10:
                         pts.append([d[1]])
                     elif d[0] in [20,30]:
@@ -1022,7 +1049,10 @@ def processdxf(document,filename):
                 pts.reverse()
                 points = []
                 for p in pts:
-                    points.append(Vector(p[0],p[1],p[2]))
+                    if len(p) == 3:
+                        points.append(Vector(p[0],p[1],p[2]))
+                    else:
+                        points.append(Vector(p[0],p[1],0))
                 newob = Draft.makeWire(points)
                 lay = locateLayer(rawValue(leader,8))
                 lay.addObject(newob)
