@@ -2368,21 +2368,26 @@ class Upgrade(Modifier):
                         Draft.formatObject(newob,lastob)
                         
         elif (len(openwires) == 1) and (not faces) and (not wires):
-            # special case, we have only one open wire. We close it!"
+            # special case, we have only one open wire. We close it, unless it has only 1 edge!"
             p0 = openwires[0].Vertexes[0].Point
             p1 = openwires[0].Vertexes[-1].Point
             edges = openwires[0].Edges
-            edges.append(Part.Line(p1,p0).toShape())
+            if len(edges) > 1:
+                edges.append(Part.Line(p1,p0).toShape())
             w = Part.Wire(fcgeo.sortEdges(edges))
-            msg(translate("draft", "Found 1 open wire: closing it\n"))
-            if not curves:
-                newob = Draft.makeWire(w,closed=True)
+            if len(edges) == 1:
+                msg(translate("draft", "Found 1 open edge: making a line\n"))
+                newob = Draft.makeWire(w,closed=False)
             else:
-                # if not possible, we do a non-parametric union
-                newob = self.doc.addObject("Part::Feature","Wire")
-                newob.Shape = w
-                Draft.formatObject(newob,lastob)
-                
+                msg(translate("draft", "Found 1 open wire: closing it\n"))
+                if not curves:
+                    newob = Draft.makeWire(w,closed=True)
+                else:
+                    # if not possible, we do a non-parametric union
+                    newob = self.doc.addObject("Part::Feature","Wire")
+                    newob.Shape = w
+                    Draft.formatObject(newob,lastob)
+
         elif openwires and (not wires) and (not faces):
             # only open wires and edges: we try to join their edges
             for ob in self.sel:
@@ -3604,6 +3609,12 @@ class Point:
         return {'Pixmap'  : 'Draft_Point',
                 'MenuText': QtCore.QT_TRANSLATE_NOOP("Draft_Point", "Point"),
                 'ToolTip': QtCore.QT_TRANSLATE_NOOP("Draft_Point", "Creates a point object")}
+
+    def IsActive(self):
+        if FreeCADGui.ActiveDocument:
+            return True
+        else:
+            return False
     
     def Activated(self):
         self.view = FreeCADGui.ActiveDocument.ActiveView
@@ -3636,13 +3647,25 @@ class ToggleSnap():
     "The ToggleSnap FreeCAD command definition"
 
     def GetResources(self):
-        return {'Pixmap'  : 'Draft_Snap',
+        return {'Pixmap'  : 'Snap_Lock',
+                'Accel' : "Shift+S",
                 'MenuText': QtCore.QT_TRANSLATE_NOOP("Draft_ToggleSnap", "Toggle snap"),
                 'ToolTip' : QtCore.QT_TRANSLATE_NOOP("Draft_ToggleSnap", "Toggles Draft snap on or off")}
 
     def Activated(self):
         if hasattr(FreeCADGui,"Snapper"):
-            FreeCADGui.Snapper.active = not FreeCADGui.Snapper.active
+            FreeCADGui.Snapper.toggle()
+
+class ShowSnapBar():
+    "The ShowSnapBar FreeCAD command definition"
+
+    def GetResources(self):
+        return {'MenuText': QtCore.QT_TRANSLATE_NOOP("Draft_ShowSnapBar", "Show Snap Bar"),
+                'ToolTip' : QtCore.QT_TRANSLATE_NOOP("Draft_ShowSnapBar", "Shows Draft snap toolbar")}
+
+    def Activated(self):
+        if hasattr(FreeCADGui,"Snapper"):
+            FreeCADGui.Snapper.show()
             
 #---------------------------------------------------------------------------
 # Adds the icons & commands to the FreeCAD command manager, and sets defaults
@@ -3689,6 +3712,7 @@ FreeCADGui.addCommand('Draft_AddToGroup',AddToGroup())
 FreeCADGui.addCommand('Draft_SelectGroup',SelectGroup())
 FreeCADGui.addCommand('Draft_Shape2DView',Shape2DView())
 FreeCADGui.addCommand('Draft_ToggleSnap',ToggleSnap())
+FreeCADGui.addCommand('Draft_ShowSnapBar',ShowSnapBar())
 
 # a global place to look for active draft Command
 FreeCAD.activeDraftCommand = None

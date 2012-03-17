@@ -101,7 +101,7 @@ def getParamType(param):
     elif param in ["textheight","tolerance","gridSpacing"]:
         return "float"
     elif param in ["selectBaseObjects","alwaysSnap","grid","fillmode","saveonexit","maxSnap",
-                   "SvgLinesBlack","dxfStdSize"]:
+                   "SvgLinesBlack","dxfStdSize","showSnapBar"]:
         return "bool"
     elif param in ["color","constructioncolor","snapcolor"]:
         return "unsigned"
@@ -277,6 +277,47 @@ def select(objs=None):
             objs = [objs]
         for obj in objs:
             FreeCADGui.Selection.addSelection(obj)
+
+def loadTexture(filename):
+    "loadTexture(filename): returns a SoSFImage from a file"
+    from pivy import coin
+    from PyQt4 import QtGui
+    try:
+        p = QtGui.QImage(filename)
+        size = coin.SbVec2s(p.width(), p.height())
+        buffersize = p.numBytes()
+        numcomponents = int (buffersize / ( size[0] * size[1] ))
+
+        img = coin.SoSFImage()
+        width = size[0]
+        height = size[1]
+        bytes = ""
+       
+        for y in range(height):
+            #line = width*numcomponents*(height-(y));
+            for x in range(width):
+                rgb = p.pixel(x,y)
+                if numcomponents == 1:
+                    bytes = bytes + chr(QtGui.qGray( rgb ))
+                elif numcomponents == 2:
+                    bytes = bytes + chr(QtGui.qGray( rgb ))
+                    bytes = bytes + chr(QtGui.qAlpha( rgb ))
+                elif numcomponents == 3:
+                    bytes = bytes + chr(QtGui.qRed( rgb ))
+                    bytes = bytes + chr(QtGui.qGreen( rgb ))
+                    bytes = bytes + chr(QtGui.qBlue( rgb ))
+                elif numcomponents == 4:
+                    bytes = bytes + chr(QtGui.qRed( rgb ))
+                    bytes = bytes + chr(QtGui.qGreen( rgb ))
+                    bytes = bytes + chr(QtGui.qBlue( rgb ))
+                    bytes = bytes + chr(QtGui.qAlpha( rgb ))
+                #line += numcomponents
+
+        img.setValue(size, numcomponents, bytes)
+    except:
+        return None
+    else:
+        return img
 
 def makeCircle(radius, placement=None, face=True, startangle=None, endangle=None, support=None):
     '''makeCircle(radius,[placement,face,startangle,endangle])
@@ -1040,8 +1081,8 @@ def draftify(objectslist,makeblock=False):
             return newobjlist[0]
         return newobjlist
 
-def getSVG(obj,modifier=100,textmodifier=100,linestyle="continuous",fillstyle="shape color",direction=None):
-    '''getSVG(object,[modifier],[textmodifier],[linestyle],[fillstyle],[direction]):
+def getSVG(obj,modifier=100,textmodifier=100,fillstyle="shape color",direction=None):
+    '''getSVG(object,[modifier],[textmodifier],[fillstyle],[direction]):
     returns a string containing a SVG representation of the given object. the modifier attribute
     specifies a scale factor for linewidths in %, and textmodifier specifies
     a scale factor for texts, in % (both default = 100). You can also supply
@@ -1060,6 +1101,19 @@ def getSVG(obj,modifier=100,textmodifier=100,linestyle="continuous",fillstyle="s
         if direction != Vector(0,0,0):
             plane = WorkingPlane.plane()
             plane.alignToPointAndAxis(Vector(0,0,0),fcvec.neg(direction),0)
+
+    def getLineStyle(obj):
+        "returns a linestyle pattern for a given object"
+        if obj.ViewObject:
+            if hasattr(obj.ViewObject,"DrawStyle"):
+                ds = obj.ViewObject.DrawStyle
+                if ds == "Dashed":
+                    return "0.09,0.05"
+                elif ds == "Dashdot":
+                    return "0.09,0.05,0.02,0.05"
+                elif ds == "Dotted":
+                    return "0.02,0.02"
+        return "none"
 
     def getrgb(color):
         "getRGB(color): returns a rgb value #000000 from a freecad color"
@@ -1227,6 +1281,38 @@ def getSVG(obj,modifier=100,textmodifier=100,linestyle="continuous",fillstyle="s
             svg += '<tspan>'+l+'</tspan>\n'
         svg += '</text>\n'
 
+    elif getType(obj) == "Axis":
+        "returns the SVG representation of an Arch Axis system"
+        color = getrgb(obj.ViewObject.LineColor)
+        lorig = getLineStyle(obj)
+        name = obj.Name
+        stroke = getrgb(obj.ViewObject.LineColor)
+        width = obj.ViewObject.LineWidth/modifier
+        fill = 'none'
+        invpl = obj.Placement.inverse()
+        n = 0
+        for e in obj.Shape.Edges:
+            lstyle = lorig
+            svg += getPath([e])
+            p1 = invpl.multVec(e.Vertexes[0].Point)
+            p2 = invpl.multVec(e.Vertexes[1].Point)
+            dv = p2.sub(p1)
+            dv.normalize()
+            rad = obj.ViewObject.BubbleSize
+            center = p2.add(dv.scale(rad,rad,rad))
+            lstyle = "none"
+            svg += getCircle(Part.makeCircle(rad,center))
+            svg += '<text fill="' + color + '" '
+            svg += 'font-size="' + str(rad) + '" '
+            svg += 'style="text-anchor:middle;'
+            svg += 'text-align:center;'
+            svg += 'font-family: Arial,sans;" '
+            svg += 'transform="translate(' + str(center.x+rad/4) + ',' + str(center.y-rad/3) + ') '
+            svg += 'scale(1,-1)"> '
+            svg += '<tspan>' + obj.ViewObject.Proxy.getNumber(n) + '</tspan>\n'
+            svg += '</text>\n'
+            n += 1
+
     elif obj.isDerivedFrom('Part::Feature'):
         if obj.Shape.isNull(): return ''
         color = getrgb(obj.ViewObject.LineColor)
@@ -1239,15 +1325,7 @@ def getSVG(obj,modifier=100,textmodifier=100,linestyle="continuous",fillstyle="s
                 svg += getPattern(fillstyle)
         else:
             fill = 'none'
-        # setting linetype
-        if linestyle == "dashed":
-            lstyle = "0.09,0.05"
-        elif linestyle == "dashdotted":
-            lstyle = "0.09,0.05,0.02,0.05"
-        elif linestyle == "dotted":
-            lstyle = "0.02,0.02"
-        else:
-            lstyle = "none"
+        lstyle = getLineStyle(obj)
         name = obj.Name
         if obj.ViewObject.DisplayMode == "Shaded":
             stroke = "none"
@@ -1338,21 +1416,22 @@ def makeSketch(objectslist,autoconstraints=False,addTo=None,name="Sketch"):
             # TODO add Radius constraits
             ok = True
         elif tp == "Rectangle":
-            for edge in obj.Shape.Edges:
-                nobj.addGeometry(edge.Curve)
-            if autoconstraints:
-                last = nobj.GeometryCount - 1
-                segs = [last-3,last-2,last-1,last]
-                if obj.Placement.Rotation.Q == (0,0,0,1):
-                    nobj.addConstraint(Constraint("Coincident",last-3,EndPoint,last-2,StartPoint))
-                    nobj.addConstraint(Constraint("Coincident",last-2,EndPoint,last-1,StartPoint))
-                    nobj.addConstraint(Constraint("Coincident",last-1,EndPoint,last,StartPoint))
-                    nobj.addConstraint(Constraint("Coincident",last,EndPoint,last-3,StartPoint))
-                nobj.addConstraint(Constraint("Horizontal",last-3))
-                nobj.addConstraint(Constraint("Vertical",last-2))
-                nobj.addConstraint(Constraint("Horizontal",last-1))
-                nobj.addConstraint(Constraint("Vertical",last))
-            ok = True
+            if obj.FilletRadius == 0:
+                for edge in obj.Shape.Edges:
+                    nobj.addGeometry(edge.Curve)
+                if autoconstraints:
+                    last = nobj.GeometryCount - 1
+                    segs = [last-3,last-2,last-1,last]
+                    if obj.Placement.Rotation.Q == (0,0,0,1):
+                        nobj.addConstraint(Constraint("Coincident",last-3,EndPoint,last-2,StartPoint))
+                        nobj.addConstraint(Constraint("Coincident",last-2,EndPoint,last-1,StartPoint))
+                        nobj.addConstraint(Constraint("Coincident",last-1,EndPoint,last,StartPoint))
+                        nobj.addConstraint(Constraint("Coincident",last,EndPoint,last-3,StartPoint))
+                    nobj.addConstraint(Constraint("Horizontal",last-3))
+                    nobj.addConstraint(Constraint("Vertical",last-2))
+                    nobj.addConstraint(Constraint("Horizontal",last-1))
+                    nobj.addConstraint(Constraint("Vertical",last))
+                ok = True
         elif tp in ["Wire","Polygon"]:
             closed = False
             if tp == "Polygon":
@@ -1373,13 +1452,13 @@ def makeSketch(objectslist,autoconstraints=False,addTo=None,name="Sketch"):
                 if closed:
                     nobj.addConstraint(Constraint("Coincident",last-1,EndPoint,segs[0],StartPoint))
             ok = True
-        elif obj.isDerivedFrom("Part::Feature"):
+        if (not ok) and obj.isDerivedFrom("Part::Feature"):
             if fcgeo.hasOnlyWires(obj.Shape):
                 for w in obj.Shape.Wires:
                     for edge in fcgeo.sortEdges(w.Edges):
                         g = fcgeo.geom(edge)
                         if g:
-                            nobj.addGeometry(g)
+                            nobj.addGeometry(g)  
                     if autoconstraints:
                         last = nobj.GeometryCount
                         segs = range(last-len(w.Edges),last-1)
@@ -1506,8 +1585,6 @@ class _ViewProviderDraft:
         
     def __init__(self, obj):
         obj.Proxy = self
-        obj.addProperty("App::PropertyEnumeration","DrawStyle","Base",
-                        "The line style of this object")
         self.Object = obj.Object
         
     def attach(self, obj):
@@ -2111,9 +2188,11 @@ class _ViewProviderRectangle(_ViewProviderDraft):
         if prop == "TextureImage":
             r = vp.RootNode
             if os.path.exists(vp.TextureImage):
-                self.texture = coin.SoTexture2()
-                self.texture.filename = str(vp.TextureImage)
-                r.insertChild(self.texture,1)
+                im = loadTexture(vp.TextureImage)
+                if im:
+                    self.texture = coin.SoTexture2()
+                    self.texture.image = im
+                    r.insertChild(self.texture,1)
             else:
                 if self.texture:
                     r.removeChild(self.texture)
@@ -2340,9 +2419,7 @@ class _DrawingView:
         obj.addProperty("App::PropertyFloat","LinewidthModifier","Drawing view","Modifies the linewidth of the lines inside this object")
         obj.addProperty("App::PropertyFloat","TextModifier","Drawing view","Modifies the size of the texts inside this object")
         obj.addProperty("App::PropertyLink","Source","Base","The linked object")
-        obj.addProperty("App::PropertyEnumeration","LineStyle","Drawing view","Line Style")
         obj.addProperty("App::PropertyEnumeration","FillStyle","Drawing view","Shape Fill Style")
-        obj.LineStyle = ['continuous','dashed','dashdotted','dotted']
         fills = ['shape color']
         for f in FreeCAD.svgpatterns.keys():
             fills.append(f)
@@ -2358,12 +2435,12 @@ class _DrawingView:
             obj.ViewResult = self.updateSVG(obj)
 
     def onChanged(self, obj, prop):
-        if prop in ["X","Y","Scale","LinewidthModifier","TextModifier","LineStyle","FillStyle","Direction"]:
+        if prop in ["X","Y","Scale","LinewidthModifier","TextModifier","FillStyle","Direction"]:
             obj.ViewResult = self.updateSVG(obj)
 
     def updateSVG(self, obj):
         "encapsulates a svg fragment into a transformation node"
-        svg = getSVG(obj.Source,obj.LinewidthModifier,obj.TextModifier,obj.LineStyle,obj.FillStyle,obj.Direction)
+        svg = getSVG(obj.Source,obj.LinewidthModifier,obj.TextModifier,obj.FillStyle,obj.Direction)
         result = ''
         result += '<g id="' + obj.Name + '"'
         result += ' transform="'

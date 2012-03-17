@@ -52,7 +52,8 @@ else: gui = True
 try: draftui = FreeCADGui.draftToolBar
 except: draftui = None
 
-pythonopen = open # to distinguish python built-in open function from the one declared here
+if open.__module__ == '__builtin__':
+    pythonopen = open # to distinguish python built-in open function from the one declared here
 
 def prec():
     "returns the current Draft precision level"
@@ -1085,11 +1086,11 @@ def processdxf(document,filename):
                         if fmt.makeBlocks:
                             addToBlock(s,lay)
                         else:
-                            newob = doc.addObject("Part::Feature","Hatch")
-                            newob.Shape = s
+                            newob = addObject(s,"Hatch",lay)
+                            if gui: 
+                                fmt.formatObject(newob,hatch)
                     else:
                         newob = Draft.makeWire(points)
-                    if newob:
                         locateLayer(lay).addObject(newob)
                         if gui: 
                             fmt.formatObject(newob,hatch)

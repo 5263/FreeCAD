@@ -237,6 +237,7 @@ PyObject* VectorPy::richCompare(PyObject *v, PyObject *w, int op)
         }
     }
     else {
+        // This always returns False
         Py_INCREF(Py_NotImplemented);
         return Py_NotImplemented;
     }
