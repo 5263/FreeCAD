@@ -4,6 +4,8 @@ SET(MachDist_SRCS
     InitGui.py
     ApplyingBC_IC.py
     mach_dist_gui.py
+	machdist_rc.py
+	Parameter.py
     postprocess.py
     postprocess_gui.py
 	calculix_postprocess.py

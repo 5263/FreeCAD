@@ -899,7 +899,7 @@ void Cutting::zLevelCallback(void * ud, SoEventCallback * n)
         if (!vp || !vp->getTypeId().isDerivedFrom(PartGui::ViewProviderPart::getClassTypeId()))
             return;
         PartGui::ViewProviderPart* vpp = static_cast<PartGui::ViewProviderPart*>(vp);
-        TopoDS_Shape sh = vpp->getShape(point);
+		TopoDS_Shape sh;//We have to get the latest information on how to access the point value again= vpp->getElement(point);
         if (!sh.IsNull())
         {
             // ok a shape was picked

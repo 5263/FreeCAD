@@ -88,7 +88,7 @@ SET(Cam_SRCS
 
 add_library(Cam SHARED ${Cam_SRCS})
 target_link_libraries(Cam ${Cam_LIBS})
-fc_copy_script("Mod/Cam" "Cam" Init.py)
+fc_target_copy_resource("Mod/Cam" "Cam" Init.py)
 
 if(MSVC)
     set_target_properties(Cam PROPERTIES SUFFIX ".pyd")
