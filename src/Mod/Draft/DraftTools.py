@@ -72,6 +72,16 @@ MODCONSTRAIN = MODS[Draft.getParam("modconstrain")]
 MODSNAP = MODS[Draft.getParam("modsnap")]
 MODALT = MODS[Draft.getParam("modalt")]
 
+# sets defaults on first load
+
+if not FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Mod/").HasGroup("Draft"):
+    p = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Mod/Draft")
+    p.SetBool("copymode",1)
+    p.SetBool("alwaysSnap",1)
+    p.SetBool("showSnapBar",1)
+    p.SetUnsigned("constructioncolor",746455039)
+    p.SetFloat("textheight",0.2)
+
 #---------------------------------------------------------------------------
 # General functions
 #---------------------------------------------------------------------------
@@ -2297,7 +2307,7 @@ class Upgrade(Modifier):
                 newob = Draft.fuse(self.sel[0],self.sel[1])
                 self.nodelete = True
                                 
-            elif (len(self.sel) > 2) and (len(faces) > 10):
+            elif (len(self.sel) > 2) and (len(faces) > 6):
                 # we have many separate faces: we try to make a shell
                 sh = Part.makeShell(faces)
                 newob = self.doc.addObject("Part::Feature","Shell")
@@ -2316,6 +2326,7 @@ class Upgrade(Modifier):
                         f = True
                     u = fcgeo.concatenate(u)
                     if not curves:
+                        # several coplanar and non-curved faces: they can becoem a Draft wire
                         msg(translate("draft", "Found several objects or faces: making a parametric face\n"))
                         newob = Draft.makeWire(u.Wires[0],closed=True,face=f)
                         Draft.formatObject(newob,lastob)
@@ -2340,6 +2351,8 @@ class Upgrade(Modifier):
                 if (not curves) and (Draft.getType(self.sel[0]) == "Part"):
                     msg(translate("draft", "Found 1 non-parametric objects: draftifying it\n"))
                     Draft.draftify(self.sel[0])
+            else:
+                msg(translate("draft", "Couldn't upgrade these objects\n"))
                                         
         elif wires and (not faces) and (not openwires):
             # we have only wires, no faces
@@ -2359,10 +2372,11 @@ class Upgrade(Modifier):
                     faces.append(f)
                 for f in faces:
                     if not curves: 
+                        msg(translate("draft", "Found a closed wire: making a Draft wire\n"))
                         newob = Draft.makeWire(f.Wire,closed=True)
                     else:
                         # if there are curved segments, we do a non-parametric face
-                        msg(translate("draft", "Found closed wires: making faces\n"))
+                        msg(translate("draft", "Found a closed wire with curves: making a face\n"))
                         newob = self.doc.addObject("Part::Feature","Face")
                         newob.Shape = f
                         Draft.formatObject(newob,lastob)
@@ -2472,7 +2486,7 @@ class Downgrade(Modifier):
         self.doc.openTransaction("Downgrade")
         
         if (len(self.sel) == 1) and (Draft.getType(self.sel[0]) == "Block"):
-            # a block, we explode it
+            # we have a block, we explode it
             pl = self.sel[0].Placement
             newob = []
             for ob in self.sel[0].Components:
@@ -3096,10 +3110,10 @@ class Edit(Modifier):
                     if hasattr(self.obj.ViewObject,"Selectable"):
                         self.selectstate = self.obj.ViewObject.Selectable
                         self.obj.ViewObject.Selectable = False
-                    if not Draft.getType(self.obj) in ["Wire","BSpline"]:
-                        self.ui.setEditButtons(False)
-                    else:
+                    if Draft.getType(self.obj) in ["Wire","BSpline"]:
                         self.ui.setEditButtons(True)
+                    else:
+                        self.ui.setEditButtons(False)
                     self.editing = None
                     self.editpoints = []
                     self.pl = None
@@ -3137,13 +3151,13 @@ class Edit(Modifier):
                         for ep in range(len(self.editpoints)):
                             self.trackers.append(editTracker(self.editpoints[ep],self.obj.Name,
                                                              ep,self.obj.ViewObject.LineColor))
-                            self.constraintrack = lineTracker(dotted=True)
-                            self.call = self.view.addEventCallback("SoEvent",self.action)
-                            self.running = True
-                            plane.save()
-                            if "Shape" in self.obj.PropertiesList:
-                                plane.alignToFace(self.obj.Shape)
-                            self.planetrack.set(self.editpoints[0])
+                        self.constraintrack = lineTracker(dotted=True)
+                        self.call = self.view.addEventCallback("SoEvent",self.action)
+                        self.running = True
+                        plane.save()
+                        if "Shape" in self.obj.PropertiesList:
+                            plane.alignToFace(self.obj.Shape)
+                        self.planetrack.set(self.editpoints[0])
                     else:
                         msg(translate("draft", "This object type is not editable\n"),'warning')
                         self.finish()
@@ -3188,27 +3202,27 @@ class Edit(Modifier):
         elif arg["Type"] == "SoMouseButtonEvent":
             if (arg["State"] == "DOWN") and (arg["Button"] == "BUTTON1"):
                 if self.editing == None:
-                    snapped = self.view.getObjectInfo((arg["Position"][0],arg["Position"][1]))
-                    if snapped:
-                        if snapped['Object'] == self.obj.Name:
+                    sel = FreeCADGui.Selection.getSelectionEx()
+                    if sel:
+                        sel = sel[0]
+                        if sel.ObjectName == self.obj.Name:
                             if self.ui.addButton.isChecked():
                                 point,ctrlPoint = getPoint(self,arg)
                                 self.pos = arg["Position"]
                                 self.addPoint(point)
                             elif self.ui.delButton.isChecked():
-                                if 'EditNode' in snapped['Component']:
-                                    self.delPoint(int(snapped['Component'][8:]))
-                            elif 'EditNode' in snapped['Component']:
+                                if 'EditNode' in sel.SubElementNames[0]:
+                                    self.delPoint(int(sel.SubElementNames[0][8:]))
+                            elif 'EditNode' in sel.SubElementNames[0]:
                                 self.ui.pointUi()
                                 self.ui.isRelative.show()
-                                self.editing = int(snapped['Component'][8:])
+                                self.editing = int(sel.SubElementNames[0][8:])
                                 self.trackers[self.editing].off()
                                 if hasattr(self.obj.ViewObject,"Selectable"):
                                     self.obj.ViewObject.Selectable = False
                                 if "Points" in self.obj.PropertiesList:
                                     self.node.append(self.obj.Points[self.editing])
                 else:
-                    print "finishing edit"
                     self.trackers[self.editing].on()
                     if hasattr(self.obj.ViewObject,"Selectable"):
                         self.obj.ViewObject.Selectable = True

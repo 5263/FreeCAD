@@ -215,13 +215,17 @@ class Snapper:
                 comp = info['Component']
 
                 if (Draft.getType(obj) == "Wall") and not oldActive:
-                    if obj.Base:
-                        for edge in obj.Base.Shape.Edges:
-                            snaps.extend(self.snapToEndpoints(edge))
-                            snaps.extend(self.snapToMidpoint(edge))
-                            snaps.extend(self.snapToPerpendicular(edge,lastpoint))
-                            snaps.extend(self.snapToIntersection(edge))
-                            snaps.extend(self.snapToElines(edge,eline))
+                    edges = []
+                    for o in [obj]+obj.Additions:
+                        if Draft.getType(o) == "Wall":
+                            if o.Base:
+                                edges.extend(o.Base.Shape.Edges)
+                    for edge in edges:
+                        snaps.extend(self.snapToEndpoints(edge))
+                        snaps.extend(self.snapToMidpoint(edge))
+                        snaps.extend(self.snapToPerpendicular(edge,lastpoint))
+                        snaps.extend(self.snapToIntersection(edge))
+                        snaps.extend(self.snapToElines(edge,eline))
                             
                 elif obj.isDerivedFrom("Part::Feature"):
                     if (not self.maxEdges) or (len(obj.Edges) <= self.maxEdges):
@@ -605,6 +609,8 @@ class Snapper:
         self.unconstrain()
         self.radius = 0
         self.setCursor()
+        if Draft.getParam("hideSnapBar"):
+            self.toolbar.hide()
 
     def constrain(self,point,basepoint=None,axis=None):
         '''constrain(point,basepoint=None,axis=None: Returns a
