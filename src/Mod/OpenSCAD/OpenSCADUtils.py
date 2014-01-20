@@ -414,3 +414,24 @@ def process_ObjectsViaOpenSCAD(doc,children,name):
         import FreeCAD
         FreeCAD.Console.PrintError( unicode(translate('OpenSCAD',\
             "Error all shapes must be either 2D or both must be 3D"))+u'\n')
+
+def removesubtree(objs):
+    def addsubobjs(obj,toremoveset):
+        toremove.add(obj)
+        for subobj in obj.OutList:
+            addsubobjs(subobj,toremoveset)
+
+    import FreeCAD
+    toremove=set()
+    for obj in objs:
+        addsubobjs(obj,toremove)
+    checkinlistcomplete =False
+    while not checkinlistcomplete:
+        for obj in toremove:
+            if (obj not in objs) and (frozenset(obj.InList) - toremove):
+                toremove.remove(obj)
+                break
+        else:
+            checkinlistcomplete = True
+    for obj in toremove:
+        obj.Document.removeObject(obj.Name)

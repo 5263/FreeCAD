@@ -141,26 +141,9 @@ class RemoveSubtree:
     def IsActive(self):
         return bool(FreeCADGui.Selection.getSelectionEx())
     def Activated(self):
-        def addsubobjs(obj,toremoveset):
-            toremove.add(obj)
-            for subobj in obj.OutList:
-                addsubobjs(subobj,toremoveset)
+        import OpenSCADUtils,FreeCADGui
+        OpenSCADUtils.removesubtree(FreeCADGui.Selection.getSelection())
 
-        import FreeCAD,FreeCADGui
-        objs=FreeCADGui.Selection.getSelection()
-        toremove=set()
-        for obj in objs:
-            addsubobjs(obj,toremove)
-        checkinlistcomplete =False
-        while not checkinlistcomplete:
-            for obj in toremove:
-                if (obj not in objs) and (frozenset(obj.InList) - toremove):
-                    toremove.remove(obj)
-                    break
-            else:
-                checkinlistcomplete = True
-        for obj in toremove:
-            obj.Document.removeObject(obj.Name)
     def GetResources(self):
         return {'Pixmap'  : 'OpenSCAD_RemoveSubtree', 'MenuText': \
                 QtCore.QT_TRANSLATE_NOOP('OpenSCAD_RemoveSubtree',\
