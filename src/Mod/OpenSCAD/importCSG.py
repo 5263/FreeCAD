@@ -219,8 +219,14 @@ def p_statementwithmod(p):
     #ignore the modifiers but add them to the label
     modifier = p[1]
     obj = p[2]
+    newlabel = modifier + (obj.Label if hasattr(obj,'Label') else '')
+    if modifier == '*' or modifier == '%':
+        #obj.Document.removeObject(obj.Name) # would remove the toplevel object only.
+        removesubtree([obj])
+        obj=doc.addObject("Part::Feature","emptymodifier")
+        obj.Shape = Part.Compound([])
     if hasattr(obj,'Label'):
-        obj.Label = modifier + obj.Label
+        obj.Label = newlabel
     p[0] = obj
 
 def p_part(p):
