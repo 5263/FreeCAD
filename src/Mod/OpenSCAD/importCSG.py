@@ -27,7 +27,7 @@
 #*                                                                         *
 #*                                                                         *
 #***************************************************************************
-__title__="FreeCAD OpenSCAD Workbench - CSG importer Version 0.06a"
+__title__="FreeCAD OpenSCAD Workbench - CSG importer"
 __author__ = "Keith Sloan <keith@sloan-home.co.uk>"
 __url__ = ["http://www.sloan-home.co.uk/ImportCSG"]
 
@@ -47,9 +47,7 @@ import ply.yacc as yacc
 import Part
 
 from OpenSCADFeatures import *
-#from OpenSCAD2Dgeom import *
 from OpenSCADUtils import *
-isspecialorthogonaldeterminant = isspecialorthogonalpython
 
 if open.__module__ == '__builtin__':
     pythonopen = open # to distinguish python built-in open function from the one declared here
@@ -572,7 +570,7 @@ def process_linear_extrude(obj,h) :
     try: 
         mylinear.Solid = True
     except:
-        a = 1 # Any old null statement
+        pass
     if gui:
         obj.ViewObject.hide()
     newobj=doc.addObject("Part::FeaturePython",'RefineLinearExtrude')
@@ -715,33 +713,26 @@ def p_multmatrix_action(p):
     transform_matrix = FreeCAD.Matrix()
     if printverbose: print "Multmatrix"
     if printverbose: print p[3]
-    transform_matrix.A11 = round(float(p[3][0][0]),12)
-    transform_matrix.A12 = round(float(p[3][0][1]),12)
-    transform_matrix.A13 = round(float(p[3][0][2]),12)
-    transform_matrix.A14 = round(float(p[3][0][3]),12)
-    transform_matrix.A21 = round(float(p[3][1][0]),12)
-    transform_matrix.A22 = round(float(p[3][1][1]),12)
-    transform_matrix.A23 = round(float(p[3][1][2]),12)
-    transform_matrix.A24 = round(float(p[3][1][3]),12)
-    transform_matrix.A31 = round(float(p[3][2][0]),12)
-    transform_matrix.A32 = round(float(p[3][2][1]),12)
-    transform_matrix.A33 = round(float(p[3][2][2]),12)
-    transform_matrix.A34 = round(float(p[3][2][3]),12)
+    m1l=sum(p[3],[])
+    if max(*tuple(len(me) for me in m1l)) < 14: #trucanted numbers
+        m1l=[round(float(me),12) for me in m1l] #round
+    else: #numbers might have double precision.
+        m1l=[float(me) for me in m1l] # assume precise output
+        m1l=[(0 if (abs(me) < 1e-15) else me) for me in m1l]
+    transform_matrix = FreeCAD.Matrix(*tuple(m1l))
     if printverbose: print transform_matrix
     if printverbose: print "Apply Multmatrix"
 #   If more than one object on the stack for multmatrix fuse first
     if (len(p[6]) > 1) :
         part = fuse(p[6],"Matrix Union")
-    else :                   
+    else :
         part = p[6][0]
-#    part = new_part.transformGeometry(transform_matrix)
-#    part = new_part.copy()
-#    part.transformShape(transform_matrix)
-    if (isspecialorthogonaldeterminant(fcsubmatrix(transform_matrix))) :
-       if printverbose: print "Orthogonal"
+    if (isspecialorthogonalpython(fcsubmatrix(transform_matrix))) :
+       if printverbose: print "special orthogonal"
        part.Placement=FreeCAD.Placement(transform_matrix).multiply(part.Placement)
        new_part = part
     elif isrotoinversionpython(fcsubmatrix(transform_matrix)):
+        if printverbose: print "orthogonal and inversion"
         cmat,axisvec = decomposerotoinversion(transform_matrix)
         new_part=doc.addObject("Part::Mirroring",'mirr_%s'%part.Name)
         new_part.Source=part
@@ -922,12 +913,12 @@ def p_cube_action(p):
     l,w,h = [float(str1) for str1 in p[3]['size']]
     if (l > 0 and w > 0 and h >0):
         if printverbose: print "cube : ",p[3]
-	mycube=doc.addObject('Part::Box',p[1])
-	mycube.Length=l
-	mycube.Width=w
-	mycube.Height=h
+        mycube=doc.addObject('Part::Box',p[1])
+        mycube.Length=l
+        mycube.Width=w
+        mycube.Height=h
     else:
-    	FreeCAD.Console.PrintWarning('cube with radius zero\n')
+        FreeCAD.Console.PrintWarning('cube with radius zero\n')
         mycube=doc.addObject("Part::Feature","emptycube")
         mycube.Shape = Part.Compound([])
     if p[3]['center']=='true' :

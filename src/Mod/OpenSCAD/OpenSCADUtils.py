@@ -109,7 +109,7 @@ def callopenscad(inputfilename,outputfilename=None,outputext='csg',keepname=Fals
         p=subprocess.Popen(*args,**kwargs)
         stdoutd,stderrd = p.communicate()
         if p.returncode != 0:
-            raise OpenSCADError('%s %s\n' % (stdoutd.strip(),stderr.strip()))
+            raise OpenSCADError('%s %s\n' % (stdoutd.strip(),stderrd.strip()))
             #raise Exception,'stdout %s\n stderr%s' %(stdoutd,stderrd)
         if stderrd.strip():
             FreeCAD.Console.PrintWarning(stderrd+u'\n')
@@ -188,12 +188,14 @@ def multiplymat(l,r):
 def isorthogonal(submatrix,precision=4):
     """checking if 3x3 Matrix is ortogonal (M*Transp(M)==I)"""
     prod=multiplymat(submatrix,zip(*submatrix))
-    return [[round(f,precision) for f in line] for line in prod]==[[1,0,0],[0,1,0],[0,0,1]]
+    return [[round(f,precision) for f in line] \
+        for line in prod]==[[1,0,0],[0,1,0],[0,0,1]]
 
 def detsubmatrix(s):
     """get the determinant of a 3x3 Matrix given as list of row vectors"""
-    return s[0][0]*s[1][1]*s[2][2]+s[0][1]*s[1][2]*s[2][0]+s[0][2]*s[1][0]*s[2][1]\
-          -s[2][0]*s[1][1]*s[0][2]-s[2][1]*s[1][2]*s[0][0]-s[2][2]*s[1][0]*s[0][1]
+    return s[0][0]*s[1][1]*s[2][2]+s[0][1]*s[1][2]*s[2][0]+\
+           s[0][2]*s[1][0]*s[2][1]-s[2][0]*s[1][1]*s[0][2]-\
+           s[2][1]*s[1][2]*s[0][0]-s[2][2]*s[1][0]*s[0][1]
 
 def isspecialorthogonalpython(submat,precision=4):
     return isorthogonal(submat,precision) and round(detsubmatrix(submat),precision)==1
@@ -202,7 +204,8 @@ def isrotoinversionpython(submat,precision=4):
     return isorthogonal(submat,precision) and round(detsubmatrix(submat),precision)==-1
 
 def isspecialorthogonal(mat,precision=4):
-    return abs(mat.submatrix(3).isOrthogonal(10**(-precision))-1.0) < 10**(-precision) and \
+    return abs(mat.submatrix(3).isOrthogonal(10**(-precision))-1.0) < \
+            10**(-precision) and \
             abs(mat.submatrix(3).determinant()-1.0) < 10**(-precision)
 
 def decomposerotoinversion(m,precision=4):
