@@ -714,11 +714,16 @@ def p_multmatrix_action(p):
     if printverbose: print "Multmatrix"
     if printverbose: print p[3]
     m1l=sum(p[3],[])
-    if max(*tuple(len(me) for me in m1l)) < 14: #trucanted numbers
-        m1l=[round(float(me),12) for me in m1l] #round
-    else: #numbers might have double precision.
+    if any('x' in me for me in m1l): #hexfloats
+        m1l=[float.fromhex(me) for me in m1l]
+        matrixisrounded=False
+    elif max((len(me) for me in m1l)) >= 14: #might have double precision
         m1l=[float(me) for me in m1l] # assume precise output
         m1l=[(0 if (abs(me) < 1e-15) else me) for me in m1l]
+        matrixisrounded=False
+    else: #trucanted numbers
+        m1l=[round(float(me),12) for me in m1l] #round
+        matrixisrounded=True
     transform_matrix = FreeCAD.Matrix(*tuple(m1l))
     if printverbose: print transform_matrix
     if printverbose: print "Apply Multmatrix"
