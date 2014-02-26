@@ -733,16 +733,27 @@ def p_multmatrix_action(p):
     else :
         part = p[6][0]
     if (isspecialorthogonalpython(fcsubmatrix(transform_matrix))) :
-       if printverbose: print "special orthogonal"
-       part.Placement=FreeCAD.Placement(transform_matrix).multiply(part.Placement)
-       new_part = part
+        if printverbose: print "special orthogonal"
+        if matrixisrounded:
+            if printverbose: print "rotation rounded"
+            plm=FreeCAD.Placement(transform_matrix)
+            plm=FreeCAD.Placement(plm.Base,roundrotation(plm.Rotation))
+            part.Placement=plm.multiply(part.Placement)
+        else:
+            part.Placement=FreeCAD.Placement(transform_matrix).multiply(\
+                    part.Placement)
+        new_part = part
     elif isrotoinversionpython(fcsubmatrix(transform_matrix)):
         if printverbose: print "orthogonal and inversion"
         cmat,axisvec = decomposerotoinversion(transform_matrix)
         new_part=doc.addObject("Part::Mirroring",'mirr_%s'%part.Name)
         new_part.Source=part
         new_part.Normal=axisvec
-        new_part.Placement=FreeCAD.Placement(cmat)
+        if matrixisrounded:
+            if printverbose: print "rotation rounded"
+            new_part.Placement=roundrotation(FreeCAD.Placement(cmat))
+        else:
+            new_part.Placement=FreeCAD.Placement(cmat)
         new_part.Label="mirrored %s" % part.Label
         if gui:
             part.ViewObject.hide()
