@@ -459,8 +459,85 @@ def superWireReverse(debuglist,closed=False):
     print newedges
     return Part.Wire(newedges)
 
-dxfcache = {}
 def importDXFface(filename,layer=None,doc=None):
+    def drawLine(line):
+        import Part,DraftVecUtils
+        if (len(line.points) > 1):
+            v1=FreeCAD.Vector(*line.points[0])
+            v2=FreeCAD.Vector(*line.points[1])
+            if not DraftVecUtils.equals(v1,v2):
+                return Part.Line(v1,v2).toShape()
+    def insertBlock(insert):
+        import math
+        shapes = []
+        rot = math.radians(insert.rotation)
+        scale = insert.scale
+        tsf = FreeCAD.Matrix()
+        if scale != [1.0,1.0,1.0]:
+            tsf.scale(scale[0],scale[1],0)
+            # for some reason z must be 0 to work
+            transfgeom = True
+        else:
+            transfgeom = True
+        tsf.rotateZ(rot)
+        for block in drawing.blocks.data:
+            if block.name == insert.block:
+                for subents in block.entities.data:
+                    for subshape in drawent(subents):
+                        if transfgeom:
+                            shape = subshape.transformGeometry(tsf)
+                        else:
+                            shape = subshape.copy()
+                            shape.transformShape(tsf)
+                        shape.translate(FreeCAD.Vector(*insert.loc))
+                        shapes.append(shape)
+        return shapes
+
+    def drawent(ent):
+        shapes=[]
+        if  ent.type == 'line':
+            s = drawLine(ent)
+            #s = importDXF.drawLine(ent,shapemode=True)
+            if s: shapes.append(s)
+        elif ent.type == 'polyline':
+            s = importDXF.drawPolyline(ent,shapemode=True)
+            if s: shapes.append(s)
+        elif ent.type == 'lwpolyline':
+            s = importDXF.drawPolyline(ent,shapemode=True)
+            if s: shapes.append(s)
+        elif ent.type == 'arc':
+            s = importDXF.drawArc(ent,shapemode=True)
+            if s: shapes.append(s)
+        elif ent.type == 'circle':
+            s = importDXF.drawCircle(ent,shapemode=True)
+            if s: shapes.append(s)
+        elif ent.type == 'ellipse':
+            s = importDXF.drawEllipse(ellipse)
+            if s: shapes.append(s)
+        elif ent.type == 'insert':
+            if ent.block[0] != '*':
+                shapes.extend(insertBlock(ent))
+        elif ent.type == None: pass
+        #else:
+        #    print 'skipped %s' % ent.type
+        return shapes
+
+    import FreeCAD
+    import importDXF # trigger download
+    drawing = importDXF.dxfReader.readDXF(filename)
+    edges = []
+    for ent in drawing.entities.data:
+        if not layer or ent.layer == layer:
+            for subshape in drawent(ent):
+                edges.extend(subshape.Edges)
+    if len(edges) > 0:
+        return edgestofaces(edges)
+    else:
+        print layer,len(drawing.entities.data)
+        return Part.Compound([])
+
+dxfcache = {}
+def importDXFface2(filename,layer=None,doc=None):
     import FreeCAD,importDXF
     doc = doc or FreeCAD.activeDocument()
     global dxfcache
