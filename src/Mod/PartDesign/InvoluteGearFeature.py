@@ -72,12 +72,18 @@ class _InvoluteGear:
         obj.addProperty("App::PropertyInteger","NumberOfTeeth","Gear","Number of gear teeth")
         obj.addProperty("App::PropertyLength","Modules","Gear","Modules of the gear")
         obj.addProperty("App::PropertyAngle","PressureAngle","Gear","Pressure angle of gear teeth")
+        obj.addProperty("App::PropertyAngle","HelixAngle","Gear","Helix angle of gear")
+        obj.addProperty("App::PropertyBool","Herringbone","Gear","Is a Herringbone gear")
+        obj.addProperty("App::PropertyLength","Width","Gear","Width of gear")
         obj.addProperty("App::PropertyInteger","NumberOfCurves","Gear","0=2x3 1=1x4 ")
         
         obj.NumberOfTeeth = 26
         obj.Modules = "2.5 mm" 
         obj.PressureAngle = "20 deg" 
         obj.NumberOfCurves = 0
+        obj.HelixAngle = 0
+        obj.Width = 0
+        obj.Herringbone = False
         
         obj.Proxy = self
         
@@ -87,7 +93,70 @@ class _InvoluteGear:
         w = fcgear.FCWireBuilder()
         involute.CreateExternalGear(w, obj.Modules.Value,obj.NumberOfTeeth, obj.PressureAngle.Value, obj.NumberOfCurves == 0)
         gearw = Part.Wire([o.toShape() for o in w.wire])
-        obj.Shape = gearw
+        if obj.Width.Value == 0: # wire
+            obj.Shape = gearw
+        else: #solid
+            facexyplane=Part.Face(gearw) # at z=0
+            if obj.HelixAngle == 0.0: # spur gear
+                obj.Shape = facexyplane.extrude(FreeCAD.Vector(0,0,\
+                    obj.Width.Value))
+            else:
+                import math
+                faceb=facexyplane.copy() # bottop face
+                faceu=facexyplane.copy() # top (upper) face
+                facetransformu=FreeCAD.Matrix() #transform upper face
+                #step = 2 + int(obj.HelixAngle.Value // 90)
+                #resolution in z direction
+                #zinc = obj.Width.Value/(step-1.0)
+                #angleinc = math.radians(obj.HelixAngle.Value)/(step-1.0)
+                #spine = Part.makePolygon([(0,0,i*zinc) \
+                #        for i in range(step)])
+                #auxspine = Part.makePolygon([(math.cos(i*angleinc),\
+                #        math.sin(i*angleinc),i*obj.Width.Value/(step-1)) \
+                #        for i in range(step)])
+                # for values < 90 degrees
+                angleinc = math.radians(obj.HelixAngle.Value)
+                if not obj.Herringbone: #helical gear
+                    facetransformu.rotateZ(math.radians(obj.HelixAngle.Value))
+                    facetransformu.move(FreeCAD.Vector(0,0,obj.Width.Value))
+                    faceu.transformShape(facetransformu)
+                    spine = Part.makePolygon([(0,0,0),(0,0,obj.Width.Value)])
+                    auxspine = Part.makePolygon([(0,0,0),(math.cos(angleinc),\
+                        math.sin(angleinc),obj.Width.Value)])
+                else: #herringnone gear
+                    facetransformu.move(FreeCAD.Vector(0,0,obj.Width.Value))
+                    faceu.transformShape(facetransformu)
+                    spine = Part.makePolygon([(0,0,0),\
+                            (0,0,obj.Width.Value/2.0),\
+                            (0,0,obj.Width.Value)])
+                    auxspine = Part.makePolygon([(0,0,0),\
+                            (math.cos(angleinc),math.sin(angleinc),\
+                                 obj.Width.Value/2.0),
+                            (0,0,obj.Width.Value)])
+                faces=[faceb,faceu]
+                for wire in faceb.Wires:
+                    pipeshell=Part.BRepOffsetAPI.MakePipeShell(spine)
+                    pipeshell.setSpineSupport(spine)
+                    pipeshell.add(wire)
+                    pipeshell.setAuxiliarySpine(auxspine,True,False)
+                    #print pipeshell.getStatus()
+                    assert(pipeshell.isReady())
+                    #fp.Shape=pipeshell.makeSolid()
+                    pipeshell.build()
+                    faces.extend(pipeshell.shape().Faces)
+                try:
+                    fullshell=Part.Shell(faces)
+                    solid=Part.Solid(fullshell)
+                    if solid.Volume < 0:
+                        solid.reverse()
+                    assert(solid.Volume >= 0)
+                    solids.append(solid)
+                except:
+                    # for debugging purposes only
+                    solids.append(Part.Compound(faces))
+                    # rasie
+                obj.Shape=Part.Compound(solids)
+
         return
         
         
