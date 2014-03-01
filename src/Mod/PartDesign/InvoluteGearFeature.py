@@ -134,17 +134,17 @@ class _InvoluteGear:
                                  obj.Width.Value/2.0),
                             (0,0,obj.Width.Value)])
                 faces=[faceb,faceu]
-                for wire in faceb.Wires:
-                    pipeshell=Part.BRepOffsetAPI.MakePipeShell(spine)
-                    pipeshell.setSpineSupport(spine)
-                    pipeshell.add(wire)
-                    pipeshell.setAuxiliarySpine(auxspine,True,False)
-                    #print pipeshell.getStatus()
-                    assert(pipeshell.isReady())
-                    #fp.Shape=pipeshell.makeSolid()
-                    pipeshell.build()
-                    faces.extend(pipeshell.shape().Faces)
                 try:
+                    for wire in faceb.Wires:
+                        pipeshell=Part.BRepOffsetAPI.MakePipeShell(spine)
+                        pipeshell.setSpineSupport(spine)
+                        pipeshell.add(wire)
+                        pipeshell.setAuxiliarySpine(auxspine,True,False)
+                        #print pipeshell.getStatus()
+                        assert(pipeshell.isReady())
+                        #fp.Shape=pipeshell.makeSolid()
+                        pipeshell.build()
+                        faces.extend(pipeshell.shape().Faces)
                     fullshell=Part.Shell(faces)
                     solid=Part.Solid(fullshell)
                     if solid.Volume < 0:
