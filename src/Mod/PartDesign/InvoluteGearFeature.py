@@ -97,7 +97,7 @@ class _InvoluteGear:
             obj.Shape = gearw
         else: #solid
             facexyplane=Part.Face(gearw) # at z=0
-            if obj.HelixAngle == 0.0: # spur gear
+            if obj.HelixAngle.Value == 0.0: # spur gear
                 obj.Shape = facexyplane.extrude(FreeCAD.Vector(0,0,\
                     obj.Width.Value))
             else:
