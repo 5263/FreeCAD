@@ -467,6 +467,14 @@ def importDXFface(filename,layer=None,doc=None):
             v2=FreeCAD.Vector(*line.points[1])
             if not DraftVecUtils.equals(v1,v2):
                 return Part.Line(v1,v2).toShape()
+    def drawCircle(circle):
+        import Part
+        v = FreeCAD.Vector(*circle.loc)
+        curve = Part.Circle()
+        curve.Radius = circle.radius
+        curve.Center = v
+        return curve.toShape()
+
     def insertBlock(insert):
         import math
         shapes = []
@@ -496,8 +504,8 @@ def importDXFface(filename,layer=None,doc=None):
     def drawent(ent):
         shapes=[]
         if  ent.type == 'line':
-            s = drawLine(ent)
-            #s = importDXF.drawLine(ent,shapemode=True)
+            #s = drawLine(ent)
+            s = importDXF.drawLine(ent,shapemode=True)
             if s: shapes.append(s)
         elif ent.type == 'polyline':
             s = importDXF.drawPolyline(ent,shapemode=True)
@@ -509,7 +517,8 @@ def importDXFface(filename,layer=None,doc=None):
             s = importDXF.drawArc(ent,shapemode=True)
             if s: shapes.append(s)
         elif ent.type == 'circle':
-            s = importDXF.drawCircle(ent,shapemode=True)
+            s = drawCircle(ent)
+            #s = importDXF.drawCircle(ent,shapemode=True)
             if s: shapes.append(s)
         elif ent.type == 'ellipse':
             s = importDXF.drawEllipse(ellipse)
@@ -517,23 +526,38 @@ def importDXFface(filename,layer=None,doc=None):
         elif ent.type == 'insert':
             if ent.block[0] != '*':
                 shapes.extend(insertBlock(ent))
+        elif ent.type == 'dimension': pass
         elif ent.type == None: pass
         #else:
         #    print 'skipped %s' % ent.type
         return shapes
 
+    def warn(*args):
+        raise
+
     import FreeCAD
     import importDXF # trigger download
+    #importDXF.warn = lambda obj:None #disable warnings in draw commands
+    importDXF.warn = warn #disable warnings in draw commands
     drawing = importDXF.dxfReader.readDXF(filename)
     edges = []
     for ent in drawing.entities.data:
-        if not layer or ent.layer == layer:
+        if not hasattr(ent,'layer'):
+            print 'no layer %s' % ent
+        elif not layer or ent.layer == layer:
             for subshape in drawent(ent):
                 edges.extend(subshape.Edges)
     if len(edges) > 0:
-        return edgestofaces(edges)
+        try:
+            return edgestofaces(edges)
+        except:
+            import Part
+            print layer," fail ",len(drawing.entities.data)
+            return Part.Compound(edges)
+
     else:
-        print layer,len(drawing.entities.data)
+        import Part
+        print layer," no edges ",len(drawing.entities.data)
         return Part.Compound([])
 
 dxfcache = {}
