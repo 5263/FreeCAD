@@ -125,3 +125,7 @@ endif(BUILD_SPREADSHEET)
 if(BUILD_JTREADER)
   add_subdirectory(JtReader)
 endif(BUILD_JTREADER)
+
+if(FREECAD_BUILD_SURFACETOOLS)
+  add_subdirectory(SurfaceTools)
+endif(FREECAD_BUILD_SURFACETOOLS)
