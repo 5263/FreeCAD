@@ -149,6 +149,7 @@ OPTION(BUILD_SHIP "Build the FreeCAD ship module" ON)
 OPTION(BUILD_SKETCHER "Build the FreeCAD sketcher module" ON)
 OPTION(BUILD_SPREADSHEET "Build the FreeCAD spreadsheet module" ON)
 OPTION(BUILD_START "Build the FreeCAD start module" ON)
+OPTION(BUILD_SURFACETOOLS "Build the FreeCAD surfacetool module" OFF)
 OPTION(BUILD_TEST "Build the FreeCAD test module" ON)
 OPTION(BUILD_WEB "Build the FreeCAD web module" ON)
 
