@@ -1971,6 +1971,9 @@ void ViewProviderSketch::updateColor(void)
     
     int j=0; // vertexindex
     
+    if (CurvNum > edit->CurvIdToGeoId.size()) { //broken sketch
+        throw std::range_error("Sketch CurvNum");
+    }
     for (int  i=0; i < CurvNum; i++) {
         int GeoId = edit->CurvIdToGeoId[i];
 	// CurvId has several vertex a ssociated to 1 material

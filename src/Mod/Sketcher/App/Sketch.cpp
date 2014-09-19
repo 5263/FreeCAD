@@ -433,7 +433,10 @@ int Sketch::checkGeoId(int geoId)
 {
     if (geoId < 0)
         geoId += Geoms.size();
-    assert(geoId >= 0 && geoId < int(Geoms.size()));
+    //assert(geoId >= 0 && geoId < int(Geoms.size()));
+    if (!(geoId >= 0 && geoId < int(Geoms.size()))) {
+        throw std::range_error("Sketch geoId");
+    }
     return geoId;
 }
 
