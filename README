@@ -1,3 +1,11 @@
+Surface module in FreeCAD
+-------------------------------
+
+This FreeCAD repository contains the Surface Tools module started by NateM and
+continued by me, Balázs Bámer. The Surface Tools module aims to create and
+manipulate surfaces using various forms of splines. More docs later.
+
+
 FreeCAD
 =======
 
