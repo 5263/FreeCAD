@@ -1,9 +1,14 @@
 Surface module in FreeCAD
 -------------------------------
 
-This FreeCAD repository contains the Surface Tools module started by NateM and
-continued by me, Balázs Bámer. The Surface Tools module aims to create and
+This FreeCAD repository contains the Surface module started by NateAM and
+continued by me, Balázs Bámer. The Surface module aims to create and
 manipulate surfaces using various forms of splines. More docs later.
+
+Github repository is https://github.com/balazs-bamer/FreeCAD-Surface.git
+branch surface-module. The master branch in this repository is obsolote!
+
+The origin of this branch was the actual master repository. Hash with last commit was 86a1757c2049e9e028525297636a2b1fdfce6006 with commit title Sketcher: Slot: proper tangent constraints.
 
 
 FreeCAD
