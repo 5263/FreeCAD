@@ -1312,81 +1312,89 @@ void Document::_rebuildDependencyList(void)
 
 void Document::recompute()
 {
-    // delete recompute log
-    for( std::vector<App::DocumentObjectExecReturn*>::iterator it=_RecomputeLog.begin();it!=_RecomputeLog.end();++it)
-        delete *it;
-    _RecomputeLog.clear();
-
-    // updates the dependency graph
-    _rebuildDependencyList();
-
-    std::list<Vertex> make_order;
-    DependencyList::out_edge_iterator j, jend;
-
-    try {
-        // this sort gives the execute
-        boost::topological_sort(d->DepList, std::front_inserter(make_order));
+    ParameterGrp::handle group = App::GetApplication().GetUserParameter().
+    GetGroup("BaseApp")->GetGroup("Preferences")->GetGroup("Document");
+    bool disabled = group->GetBool("DisableRecomputes", false);
+    if (disabled) {
+        Base::Console().Warning("skipped disabled Document::recompute()\n");
     }
-    catch (const std::exception& e) {
-        std::cerr << "Document::recompute: " << e.what() << std::endl;
-        return;
-    }
+    else {
+        // delete recompute log
+        for( std::vector<App::DocumentObjectExecReturn*>::iterator it=_RecomputeLog.begin();it!=_RecomputeLog.end();++it)
+            delete *it;
+        _RecomputeLog.clear();
 
-    // caching vertex to DocObject
-    for (std::map<DocumentObject*,Vertex>::const_iterator It1= d->VertexObjectList.begin();It1 != d->VertexObjectList.end(); ++It1)
-        d->vertexMap[It1->second] = It1->first;
+        // updates the dependency graph
+        _rebuildDependencyList();
+
+        std::list<Vertex> make_order;
+        DependencyList::out_edge_iterator j, jend;
+
+        try {
+            // this sort gives the execute
+            boost::topological_sort(d->DepList, std::front_inserter(make_order));
+        }
+        catch (const std::exception& e) {
+            std::cerr << "Document::recompute: " << e.what() << std::endl;
+            return;
+        }
+
+        // caching vertex to DocObject
+        for (std::map<DocumentObject*,Vertex>::const_iterator It1= d->VertexObjectList.begin();It1 != d->VertexObjectList.end(); ++It1)
+            d->vertexMap[It1->second] = It1->first;
 
 #ifdef FC_LOGFEATUREUPDATE
-    std::clog << "make ordering: " << std::endl;
+        std::clog << "make ordering: " << std::endl;
 #endif
 
-    for (std::list<Vertex>::reverse_iterator i = make_order.rbegin();i != make_order.rend(); ++i) {
-        DocumentObject* Cur = d->vertexMap[*i];
-        if (!Cur) continue;
+        for (std::list<Vertex>::reverse_iterator i = make_order.rbegin();i != make_order.rend(); ++i) {
+            DocumentObject* Cur = d->vertexMap[*i];
+            if (!Cur) continue;
 #ifdef FC_LOGFEATUREUPDATE
-        std::clog << Cur->getNameInDocument() << " dep on: " ;
+            std::clog << Cur->getNameInDocument() << " dep on: " ;
 #endif
-        bool NeedUpdate = false;
+            bool NeedUpdate = false;
 
-        // ask the object if it should be recomputed
-        if (Cur->mustExecute() == 1)
-            NeedUpdate = true;
-        else {// if (Cur->mustExecute() == -1)
-            // update if one of the dependencies is touched
-            for (boost::tie(j, jend) = out_edges(*i, d->DepList); j != jend; ++j) {
-                DocumentObject* Test = d->vertexMap[target(*j, d->DepList)];
-                if (!Test) continue;
+            // ask the object if it should be recomputed
+            if (Cur->mustExecute() == 1)
+                NeedUpdate = true;
+            else {// if (Cur->mustExecute() == -1)
+                // update if one of the dependencies is touched
+                for (boost::tie(j, jend) = out_edges(*i, d->DepList); j != jend; ++j) {
+                    DocumentObject* Test = d->vertexMap[target(*j, d->DepList)];
+                    if (!Test) continue;
 #ifdef FC_LOGFEATUREUPDATE
-                std::clog << Test->getNameInDocument() << ", " ;
+                    std::clog << Test->getNameInDocument() << ", " ;
 #endif
-                if (Test->isTouched()) {
-                    NeedUpdate = true;
-                    break;
+                    if (Test->isTouched()) {
+                        NeedUpdate = true;
+                        break;
+                    }
+                }
+#ifdef FC_LOGFEATUREUPDATE
+                std::clog << std::endl;
+#endif
+            }
+            // if one touched recompute
+            if (NeedUpdate) {
+#ifdef FC_LOGFEATUREUPDATE
+                std::clog << "Recompute" << std::endl;
+#endif
+                if (_recomputeFeature(Cur)) {
+                    // if somthing happen break execution of recompute
+                    d->vertexMap.clear();
+                    return;
                 }
             }
-#ifdef FC_LOGFEATUREUPDATE
-            std::clog << std::endl;
-#endif
         }
-        // if one touched recompute
-        if (NeedUpdate) {
-#ifdef FC_LOGFEATUREUPDATE
-            std::clog << "Recompute" << std::endl;
-#endif
-            if (_recomputeFeature(Cur)) {
-                // if somthing happen break execution of recompute
-                d->vertexMap.clear();
-                return;
-            }
-        }
-    }
 
-    // reset all touched
-    for (std::map<Vertex,DocumentObject*>::iterator it = d->vertexMap.begin(); it != d->vertexMap.end(); ++it) {
-        if (it->second)
-            it->second->purgeTouched();
+        // reset all touched
+        for (std::map<Vertex,DocumentObject*>::iterator it = d->vertexMap.begin(); it != d->vertexMap.end(); ++it) {
+            if (it->second)
+                it->second->purgeTouched();
+        }
+        d->vertexMap.clear();
     }
-    d->vertexMap.clear();
 }
 
 const char * Document::getErrorDescription(const App::DocumentObject*Obj) const
@@ -1458,12 +1466,19 @@ bool Document::_recomputeFeature(DocumentObject* Feat)
 
 void Document::recomputeFeature(DocumentObject* Feat)
 {
+    ParameterGrp::handle group = App::GetApplication().GetUserParameter().
+    GetGroup("BaseApp")->GetGroup("Preferences")->GetGroup("Document");
+    if (group->GetBool("DisableRecomputes", false)) {
+        Base::Console().Warning("skipped disabled Document::recomputeFeature() for \"%s\"\n",Feat->getNameInDocument());
+    }
+    else {
      // delete recompute log
-    for( std::vector<App::DocumentObjectExecReturn*>::iterator it=_RecomputeLog.begin();it!=_RecomputeLog.end();++it)
-        delete *it;
-    _RecomputeLog.clear();
+        for( std::vector<App::DocumentObjectExecReturn*>::iterator it=_RecomputeLog.begin();it!=_RecomputeLog.end();++it)
+            delete *it;
+        _RecomputeLog.clear();
 
-    _recomputeFeature(Feat);
+        _recomputeFeature(Feat);
+    }
 }
 
 DocumentObject * Document::addObject(const char* sType, const char* pObjectName)

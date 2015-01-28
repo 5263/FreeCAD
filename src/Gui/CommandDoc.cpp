@@ -1131,6 +1131,13 @@ void StdCmdRefresh::activated(int iMsg)
     if (getActiveGuiDocument()) {
         //Note: Don't add the recompute to undo/redo because it complicates
         //testing the changes of properties.
+        ParameterGrp::handle group = App::GetApplication().GetUserParameter().
+        GetGroup("BaseApp")->GetGroup("Preferences")->GetGroup("Document");
+        if (group->GetBool("DisableRecomputes", false)) {
+            //re-enable recomputes first
+            //group->SetBool("DisableRecomputes", false);
+            doCommand(Doc,"App.ParamGet('User parameter:BaseApp/Preferences/Document').SetBool('DisableRecomputes',False)");
+        }
         //openCommand("Refresh active document");
         doCommand(Doc,"App.activeDocument().recompute()");
         //commitCommand(); 
