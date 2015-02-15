@@ -39,8 +39,15 @@ Section::Section(void)
 {
 }
 
+#if OCC_VERSION_HEX <= 0x060800
 BRepAlgoAPI_BooleanOperation* Section::makeOperation(const TopoDS_Shape& base, const TopoDS_Shape& tool) const
 {
     // Let's call algorithm computing a section operation:
     return new BRepAlgoAPI_Section(base, tool);
 }
+#else
+BRepAlgoAPI_BooleanOperation* Section::initOperation() const
+{
+    return new BRepAlgoAPI_Section();
+}
+#endif

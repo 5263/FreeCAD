@@ -45,11 +45,18 @@ Common::Common(void)
 {
 }
 
+#if OCC_VERSION_HEX <= 0x060800
 BRepAlgoAPI_BooleanOperation* Common::makeOperation(const TopoDS_Shape& base, const TopoDS_Shape& tool) const
 {
     // Let's call algorithm computing a section operation:
     return new BRepAlgoAPI_Common(base, tool);
 }
+#else
+BRepAlgoAPI_BooleanOperation* Common::initOperation() const
+{
+    return new BRepAlgoAPI_Common();
+}
+#endif
 
 // ----------------------------------------------------
 
@@ -63,11 +70,12 @@ MultiCommon::MultiCommon(void)
     ADD_PROPERTY_TYPE(History,(ShapeHistory()), "Boolean", (App::PropertyType)
         (App::Prop_Output|App::Prop_Transient|App::Prop_Hidden), "Shape history");
     History.setSize(0);
+    ADD_PROPERTY_TYPE(Tolerance,(0.0f),"Boolean",App::Prop_None,"Tolerance");
 }
 
 short MultiCommon::mustExecute() const
 {
-    if (Shapes.isTouched())
+    if (Shapes.isTouched() || Tolerance.isTouched())
         return 1;
     return 0;
 }
@@ -90,7 +98,21 @@ App::DocumentObjectExecReturn *MultiCommon::execute(void)
             TopoDS_Shape resShape = s.front();
             for (std::vector<TopoDS_Shape>::iterator it = s.begin()+1; it != s.end(); ++it) {
                 // Let's call algorithm computing a fuse operation:
+#if OCC_VERSION_HEX < 0x060801
+                if (Tolerance.getValue() > 0.0)
+                    throw Base::Exception("Fuzzy Booleans are not supported");
                 BRepAlgoAPI_Common mkCommon(resShape, *it);
+#else
+                BRepAlgoAPI_Common mkCommon;
+                TopTools_ListOfShape shapeArguments,shapeTools;
+                shapeArguments.Append(resShape);
+                shapeTools.Append(*it);
+                mkCommon.SetArguments(shapeArguments);
+                mkCommon.SetTools(shapeTools);
+                if (Tolerance.getValue() > 0.0)
+                    mkCommon.SetFuzzyValue(Tolerance.getValue());
+                mkCommon.Build();
+#endif
                 // Let's check if the fusion has been successful
                 if (!mkCommon.IsDone()) 
                     throw Base::Exception("Intersection failed");

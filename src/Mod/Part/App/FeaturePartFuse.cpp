@@ -23,6 +23,7 @@
 
 #include "PreCompiled.h"
 #ifndef _PreComp_
+# include <TopTools_ListOfShape.hxx>
 # include <BRepAlgoAPI_Fuse.hxx>
 # include <BRepCheck_Analyzer.hxx>
 # include <Standard_Failure.hxx>
@@ -44,11 +45,18 @@ Fuse::Fuse(void)
 {
 }
 
+#if OCC_VERSION_HEX <= 0x060800
 BRepAlgoAPI_BooleanOperation* Fuse::makeOperation(const TopoDS_Shape& base, const TopoDS_Shape& tool) const
 {
     // Let's call algorithm computing a fuse operation:
     return new BRepAlgoAPI_Fuse(base, tool);
 }
+#else
+BRepAlgoAPI_BooleanOperation* Fuse::initOperation() const
+{
+    return new BRepAlgoAPI_Fuse();
+}
+#endif
 
 // ----------------------------------------------------
 
@@ -62,11 +70,12 @@ MultiFuse::MultiFuse(void)
     ADD_PROPERTY_TYPE(History,(ShapeHistory()), "Boolean", (App::PropertyType)
         (App::Prop_Output|App::Prop_Transient|App::Prop_Hidden), "Shape history");
     History.setSize(0);
+    ADD_PROPERTY_TYPE(Tolerance,(0.0f),"Boolean",App::Prop_None,"Tolerance");
 }
 
 short MultiFuse::mustExecute() const
 {
-    if (Shapes.isTouched())
+    if (Shapes.isTouched() || Tolerance.isTouched())
         return 1;
     return 0;
 }
@@ -87,6 +96,8 @@ App::DocumentObjectExecReturn *MultiFuse::execute(void)
         try {
             std::vector<ShapeHistory> history;
 #if OCC_VERSION_HEX <= 0x060800
+            if (Tolerance.getValue() > 0) {
+                throw Base::Exception("Fuzzy Booleans are not supported");
             TopoDS_Shape resShape = s.front();
             if (resShape.IsNull())
                 throw Base::Exception("Input shape is null");
@@ -124,6 +135,8 @@ App::DocumentObjectExecReturn *MultiFuse::execute(void)
             }
             mkFuse.SetArguments(shapeArguments);
             mkFuse.SetTools(shapeTools);
+            if (Tolerance.getValue() > 0)
+                mkFuse.SetFuzzyValue(Tolerance.getValue());
             mkFuse.Build();
             if (!mkFuse.IsDone())
                 throw Base::Exception("MultiFusion failed");

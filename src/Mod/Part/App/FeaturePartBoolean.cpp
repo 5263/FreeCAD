@@ -46,14 +46,13 @@ Boolean::Boolean(void)
     ADD_PROPERTY_TYPE(History,(ShapeHistory()), "Boolean", (App::PropertyType)
         (App::Prop_Output|App::Prop_Transient|App::Prop_Hidden), "Shape history");
     History.setSize(0);
+    ADD_PROPERTY_TYPE(Tolerance,(0.0f),"Boolean",App::Prop_None,"Tolerance");
 }
 
 short Boolean::mustExecute() const
 {
     if (Base.getValue() && Tool.getValue()) {
-        if (Base.isTouched())
-            return 1;
-        if (Tool.isTouched())
+        if (Base.isTouched() || Tool.isTouched() || Tolerance.isTouched() )
             return 1;
     }
     return 0;
@@ -78,8 +77,22 @@ App::DocumentObjectExecReturn *Boolean::execute(void)
         TopoDS_Shape ToolShape = tool->Shape.getValue();
         if (ToolShape.IsNull())
             throw Base::Exception("Tool shape is null");
-
+#if OCC_VERSION_HEX < 0x060801
+        if (Tolerance.getValue() > 0)
+            throw Base::Exception("Fuzzy Booleans are not supported");
         std::auto_ptr<BRepAlgoAPI_BooleanOperation> mkBool(makeOperation(BaseShape, ToolShape));
+#else
+        std::auto_ptr<BRepAlgoAPI_BooleanOperation> mkBool(initOperation());
+        //mkBool = &initOperation();
+        TopTools_ListOfShape argShapes,toolShapes;
+        argShapes.Append(BaseShape);
+        toolShapes.Append(ToolShape);
+        mkBool->SetArguments(argShapes);
+        mkBool->SetTools(toolShapes);
+        if (Tolerance.getValue() > 0)
+            mkBool->SetFuzzyValue(Tolerance.getValue());
+        mkBool->Build();
+#endif
         if (!mkBool->IsDone()) {
             return new App::DocumentObjectExecReturn("Boolean operation failed");
         }

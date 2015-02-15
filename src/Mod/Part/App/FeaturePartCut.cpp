@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (c) Jürgen Riegel          (juergen.riegel@web.de) 2002     *
+ *   Copyright (c) JÃ¼rgen Riegel          (juergen.riegel@web.de) 2002     *
  *                                                                         *
  *   This file is part of the FreeCAD CAx development system.              *
  *                                                                         *
@@ -40,8 +40,15 @@ Cut::Cut(void)
 {
 }
 
+#if OCC_VERSION_HEX <= 0x060800
 BRepAlgoAPI_BooleanOperation* Cut::makeOperation(const TopoDS_Shape& base, const TopoDS_Shape& tool) const
 {
     // Let's call algorithm computing a cut operation:
     return new BRepAlgoAPI_Cut(base, tool);
 }
+#else
+BRepAlgoAPI_BooleanOperation* Cut::initOperation() const
+{
+    return new BRepAlgoAPI_Cut();
+}
+#endif

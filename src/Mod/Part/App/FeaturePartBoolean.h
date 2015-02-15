@@ -25,6 +25,7 @@
 #define PART_FEATUREPARTBOOLEAN_H
 
 #include <App/PropertyLinks.h>
+#include <App/PropertyUnits.h>
 #include "PartFeature.h"
 
 class BRepAlgoAPI_BooleanOperation;
@@ -43,6 +44,7 @@ public:
     App::PropertyLink Tool;
     PropertyShapeHistory History;
 
+    App::PropertyLength Tolerance;
     /** @name methods overide Feature */
     //@{
     /// recalculate the Feature
@@ -56,7 +58,11 @@ public:
     }
 
 protected:
+#if OCC_VERSION_HEX <= 0x060800
     virtual BRepAlgoAPI_BooleanOperation* makeOperation(const TopoDS_Shape&, const TopoDS_Shape&) const = 0;
+#else
+    virtual BRepAlgoAPI_BooleanOperation* initOperation() const = 0;
+#endif
 };
 
 }

@@ -42,7 +42,11 @@ public:
     //@{
     /// recalculate the Feature
 protected:
+#if OCC_VERSION_HEX <= 0x060800
     BRepAlgoAPI_BooleanOperation* makeOperation(const TopoDS_Shape&, const TopoDS_Shape&) const;
+#else
+    BRepAlgoAPI_BooleanOperation* initOperation() const;
+#endif
     //@}
 };
 
