@@ -24,6 +24,7 @@
 #include "PreCompiled.h"
 #ifndef _PreComp_
 # include <BRepAlgoAPI_BooleanOperation.hxx>
+# include <BRepBuilderAPI_Copy.hxx>
 # include <BRepCheck_Analyzer.hxx>
 # include <memory>
 #endif
@@ -85,8 +86,17 @@ App::DocumentObjectExecReturn *Boolean::execute(void)
         std::auto_ptr<BRepAlgoAPI_BooleanOperation> mkBool(initOperation());
         //mkBool = &initOperation();
         TopTools_ListOfShape argShapes,toolShapes;
-        argShapes.Append(BaseShape);
-        toolShapes.Append(ToolShape);
+        // Workaround for corruped shared shapes in fuzzy boolean operations
+        // http://dev.opencascade.org/index.php?q=node/1056#comment-520
+        // This probably renders the history useless
+        if (Tolerance.getValue() > 0) {
+            argShapes.Append(BRepBuilderAPI_Copy(BaseShape).Shape());
+            toolShapes.Append(BRepBuilderAPI_Copy(ToolShape).Shape());
+        }
+        else {
+            argShapes.Append(BaseShape);
+            toolShapes.Append(ToolShape);
+        }
         mkBool->SetArguments(argShapes);
         mkBool->SetTools(toolShapes);
         if (Tolerance.getValue() > 0)

@@ -25,6 +25,7 @@
 #include "PreCompiled.h"
 #ifndef _PreComp_
 # include <BRepAlgoAPI_Common.hxx>
+# include <BRepBuilderAPI_Copy.hxx>
 # include <BRepCheck_Analyzer.hxx>
 # include <Standard_Failure.hxx>
 #endif
@@ -105,8 +106,14 @@ App::DocumentObjectExecReturn *MultiCommon::execute(void)
 #else
                 BRepAlgoAPI_Common mkCommon;
                 TopTools_ListOfShape shapeArguments,shapeTools;
-                shapeArguments.Append(resShape);
-                shapeTools.Append(*it);
+                if (Tolerance.getValue() > 0.0) {
+                    shapeArguments.Append(BRepBuilderAPI_Copy(resShape).Shape()); //Workaround
+                    shapeTools.Append(BRepBuilderAPI_Copy(*it).Shape()); //workaround
+                }
+                else {
+                    shapeArguments.Append(resShape);
+                    shapeTools.Append(*it);
+                }
                 mkCommon.SetArguments(shapeArguments);
                 mkCommon.SetTools(shapeTools);
                 if (Tolerance.getValue() > 0.0)

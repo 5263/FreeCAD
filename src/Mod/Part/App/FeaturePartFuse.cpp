@@ -25,6 +25,7 @@
 #ifndef _PreComp_
 # include <TopTools_ListOfShape.hxx>
 # include <BRepAlgoAPI_Fuse.hxx>
+# include <BRepBuilderAPI_Copy.hxx>
 # include <BRepCheck_Analyzer.hxx>
 # include <Standard_Failure.hxx>
 #endif
@@ -127,16 +128,30 @@ App::DocumentObjectExecReturn *MultiFuse::execute(void)
 #else
             BRepAlgoAPI_Fuse mkFuse;
             TopTools_ListOfShape shapeArguments,shapeTools;
-            shapeArguments.Append(s.front());
-            for (std::vector<TopoDS_Shape>::iterator it = s.begin()+1; it != s.end(); ++it) {
-                if (it->IsNull())
-                    throw Base::Exception("Input shape is null");
-                shapeTools.Append(*it);
+            if (Tolerance.getValue() > 0) {
+                // http://dev.opencascade.org/index.php?q=node/1056#comment-520
+                // This probably renders the history useless
+                shapeArguments.Append(BRepBuilderAPI_Copy(s.front()).Shape());
+                for (std::vector<TopoDS_Shape>::iterator it = s.begin()+1; it != s.end(); ++it) {
+                    if (it->IsNull())
+                        throw Base::Exception("Input shape is null");
+
+                    shapeTools.Append(BRepBuilderAPI_Copy(*it).Shape());
+                }
+                mkFuse.SetFuzzyValue(Tolerance.getValue());
+            }
+            else {
+                shapeArguments.Append(s.front());
+                for (std::vector<TopoDS_Shape>::iterator it = s.begin()+1; it != s.end(); ++it) {
+                    if (it->IsNull())
+                        throw Base::Exception("Input shape is null");
+                    shapeTools.Append(*it);
+                }
             }
             mkFuse.SetArguments(shapeArguments);
             mkFuse.SetTools(shapeTools);
-            if (Tolerance.getValue() > 0)
-                mkFuse.SetFuzzyValue(Tolerance.getValue());
+            //if (Tolerance.getValue() > 0)
+            //    mkFuse.SetFuzzyValue(Tolerance.getValue()); // currently done in before
             mkFuse.Build();
             if (!mkFuse.IsDone())
                 throw Base::Exception("MultiFusion failed");
