@@ -141,6 +141,12 @@ def processcsg(filename):
     FreeCAD.Console.PrintMessage('End processing CSG file\n')
     doc.recompute()
 
+def setbooltolerance(obj):
+    if occversiontuple() >= (6,8,1) and hasattr(obj,'Tolerance'):
+        obj.Tolerance = FreeCAD.ParamGet(\
+            "User parameter:BaseApp/Preferences/Mod/OpenSCAD").\
+            GetFloat('BooleanTolerance',1e-5)
+
 def p_block_list_(p):
     '''
     block_list : statement
@@ -467,6 +473,7 @@ def fuse(lst,name):
        if printverbose: print "Multi Fuse"
        myfuse = doc.addObject('Part::MultiFuse',name)
        myfuse.Shapes = lst
+       setbooltolerance(myfuse)
        if gui:
            for subobj in myfuse.Shapes:
                subobj.ViewObject.hide()
@@ -475,6 +482,7 @@ def fuse(lst,name):
        myfuse = doc.addObject('Part::Fuse',name)
        myfuse.Base = lst[0]
        myfuse.Tool = lst[1]
+       setbooltolerance(myfuse)
        if gui:
            myfuse.Base.ViewObject.hide()
            myfuse.Tool.ViewObject.hide()
@@ -508,6 +516,7 @@ def p_difference_action(p):
            mycut.Tool = fuse(p[5][1:],'union')
         else :
            mycut.Tool = p[5][1]
+        setbooltolerance(mycut)
         if gui:
             mycut.Base.ViewObject.hide()
             mycut.Tool.ViewObject.hide()
@@ -532,6 +541,7 @@ def p_intersection_action(p):
        mycommon = doc.addObject('Part::Common',p[1])
        mycommon.Base = p[5][0]
        mycommon.Tool = p[5][1]
+       setbooltolerance(mycommon)
        if gui:
            mycommon.Base.ViewObject.hide()
            mycommon.Tool.ViewObject.hide()

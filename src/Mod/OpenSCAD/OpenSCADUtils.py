@@ -49,6 +49,11 @@ class OpenSCADError(BaseError):
     def __str__(self):
         return repr(self.value)
 
+def occversiontuple():
+    import FreeCAD,Part
+    occmajs,occmins,occfixs = FreeCAD.ConfigGet('OCC_VERSION').split('.')[:3]
+    return (int(occmajs),int(occmins),int(occfixs))
+
 def searchforopenscadexe():
     import os,sys,subprocess
     if sys.platform == 'win32':
