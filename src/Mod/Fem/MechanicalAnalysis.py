@@ -223,7 +223,7 @@ class _JobControlTaskPanel:
         if not os.path.isdir(self.TempDir):
             os.mkdir(self.TempDir)
 
-        self.OutStr = ''
+        self.fem_console_message = ''
         self.Start = time.time()
         self.setup_calculix()
         #self.params = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Mod/Fem")
@@ -266,9 +266,9 @@ class _JobControlTaskPanel:
             self.calculix_bin = 'ccx'
 
     def femConsoleMessage(self, message="", color="#000000"):
-        self.OutStr = self.OutStr + '<font color="#0000FF">{0:4.1f}:</font> <font color="{1}">{2}</font><br>'.\
-                                    format(time.time() - self.Start, color, message)
-        self.form.textEdit_Output.setText(self.OutStr)
+        self.fem_console_message = self.fem_console_message + '<font color="#0000FF">{0:4.1f}:</font> <font color="{1}">{2}</font><br>'.\
+            format(time.time() - self.Start, color, message)
+        self.form.textEdit_Output.setText(self.fem_console_message)
 
     def printCalculiXstdout(self):
         #There is probably no need to show user output from CalculiX. It should be
