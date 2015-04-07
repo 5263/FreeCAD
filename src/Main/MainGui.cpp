@@ -191,7 +191,20 @@ int main( int argc, char ** argv )
     QFile::setDecodingFunction(myDecoderFunc);
     // Make sure that we use '.' as decimal point. See also
     // http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=559846
-    putenv("LC_ALL=");
+    char *pLC_ALL;
+    pLC_ALL = getenv("LC_ALL");
+    if (pLC_ALL != NULL) {
+        const std::string lang = std::string(pLC_ALL);
+        if (lang == "C" or lang == "POSIX") {
+            setenv("LANGUAGE",pLC_ALL, true);
+        }
+        setenv("LC_CTYPE",pLC_ALL, true);
+        setenv("LC_MESSAGES",pLC_ALL, true);
+        setenv("LC_COLLATE",pLC_ALL, true);
+        setenv("LC_NAME",pLC_ALL, true);
+        setenv("LC_TIME",pLC_ALL, true);
+        unsetenv("LC_ALL");
+    }
     putenv("LC_NUMERIC=C");
     putenv("PYTHONPATH=");
 #elif defined(FC_OS_MACOSX)
