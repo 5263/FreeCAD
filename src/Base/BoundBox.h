@@ -29,8 +29,10 @@
 #include "ViewProj.h"
 #include "Tools2D.h"
 
-// Checks if point K lies on the ray [A,B[
+// Checks if point K lies on the half-open line segment [A,B[
 #define IS_ON_RAY(A,B,K)  (((A) <= (K)) && ((B) > (K)))
+// Checks if point K lies on the closed line segment [A,B]
+#define IS_ON_LINE_SEGMENT(A,B,K)  (((A) <= (K)) && ((B) >= (K)))
 
 namespace Base {
 
@@ -97,10 +99,13 @@ public:
   //@{
   /** Checks if this point lies inside the box. */
   inline bool IsInBox (const Vector3<_Precision> &rcVct) const;
+  inline bool IsInOrNextBox (const Vector3<_Precision> &rcVct) const;
   /** Checks if this 3D box lies inside the box. */
   inline bool IsInBox (const BoundBox3<_Precision> &rcBB) const;
+  inline bool IsInOrNextBox (const BoundBox3<_Precision> &rcBB) const;
   /** Checks if this 2D box lies inside the box. */
   inline bool IsInBox (const BoundBox2D &rcbb) const;
+  inline bool IsInOrNextBox (const BoundBox2D &rcbb) const;
   /** Checks whether the bounding box is valid. */
   bool IsValid (void) const;
   //@}
@@ -891,6 +896,34 @@ inline void BoundBox3<_Precision>::Shrink (_Precision fLen)
 {
   MinX += fLen; MinY += fLen; MinZ += fLen;
   MaxX -= fLen; MaxY -= fLen; MaxZ -= fLen;
+}
+
+template <class _Precision>
+inline bool BoundBox3<_Precision>::IsInOrNextBox (const Vector3<_Precision> &rcVct) const
+{
+  return (IS_ON_LINE_SEGMENT (MinX, MaxX, rcVct.x) &&
+          IS_ON_LINE_SEGMENT (MinY, MaxY, rcVct.y) &&
+          IS_ON_LINE_SEGMENT (MinZ, MaxZ, rcVct.z));
+}
+
+template <class _Precision>
+inline bool BoundBox3<_Precision>::IsInOrNextBox (const BoundBox3<_Precision> &rcBB) const
+{
+  return (IS_ON_LINE_SEGMENT (MinX, MaxX, rcBB.MinX) &&
+          IS_ON_LINE_SEGMENT (MinX, MaxX, rcBB.MaxX) &&
+          IS_ON_LINE_SEGMENT (MinY, MaxY, rcBB.MinY) &&
+          IS_ON_LINE_SEGMENT (MinY, MaxY, rcBB.MaxY) &&
+          IS_ON_LINE_SEGMENT (MinZ, MaxZ, rcBB.MinZ) &&
+          IS_ON_LINE_SEGMENT (MinZ, MaxZ, rcBB.MaxZ));
+}
+
+template <class _Precision>
+inline bool BoundBox3<_Precision>::IsInOrNextBox (const BoundBox2D &rcBB) const
+{
+   return ( IS_ON_LINE_SEGMENT (MinX, MaxX, rcBB.fMinX) &&
+            IS_ON_LINE_SEGMENT (MinX, MaxX, rcBB.fMaxX) &&
+            IS_ON_LINE_SEGMENT (MinY, MaxY, rcBB.fMinY) &&
+            IS_ON_LINE_SEGMENT (MinY, MaxY, rcBB.fMaxY) );
 }
 
 template <class _Precision>

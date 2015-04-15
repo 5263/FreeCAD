@@ -135,6 +135,35 @@ PyObject*  BoundBoxPy::add(PyObject *args)
     return 0;
 }
 
+PyObject*  BoundBoxPy::isIntersectionOrContact(PyObject *args)
+{
+    double x,y,z;
+    PyObject *object,*object2;
+    Py::Boolean retVal;
+    if (PyArg_ParseTuple(args, "ddd", &x,&y,&z)) {
+        retVal = getBoundBoxPtr()->IsInOrNextBox(Vector3d(x,y,z));
+    }
+    else if (PyArg_ParseTuple(args,"O!",&PyTuple_Type, &object)) {
+        PyErr_Clear();
+        retVal = getBoundBoxPtr()-> \
+                 IsInOrNextBox(getVectorFromTuple<double>(object));
+    }
+    else if (PyArg_ParseTuple(args,"O!",&(Base::VectorPy::Type), &object)) {
+        PyErr_Clear();
+        retVal = getBoundBoxPtr()->IsInOrNextBox(*(static_cast<Base::VectorPy*>(object)->getVectorPtr()));
+    }
+    else if (PyArg_ParseTuple(args,"O!;Need vector, bounding box or three floats as argument",
+        &(Base::BoundBoxPy::Type), &object)) {
+        PyErr_Clear();
+        retVal = getBoundBoxPtr()->IsInOrNextBox(*(static_cast<Base::BoundBoxPy*>(object)->getBoundBoxPtr()));
+    }
+    else {
+        PyErr_SetString(PyExc_TypeError, "Either three floats, Vector(s) or BoundBox expected");
+        return 0;
+    }
+    return Py::new_reference_to(retVal);
+}
+
 PyObject*  BoundBoxPy::isIntersection(PyObject *args)
 {
     double x,y,z;

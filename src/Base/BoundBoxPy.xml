@@ -33,6 +33,15 @@ App.BoundBox(BoundBox)
 Add (enlarge) the given BoundBox</UserDocu>
       </Documentation>
     </Methode>
+    <Methode Name="isIntersectionOrContact">
+      <Documentation>
+        <UserDocu>method isIntersection(Vector|BoundBox|)
+Checks if the given object intersects with the BoundBox. That can be:
+- A Vector (Point)
+- Another BoundBox
+        </UserDocu>
+      </Documentation>
+    </Methode>
     <Methode Name="isIntersection">
       <Documentation>
         <UserDocu>method isIntersection(Vector|BoundBox|Vector Base, Vector Dir)
