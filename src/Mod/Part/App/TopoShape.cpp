@@ -467,6 +467,7 @@ void TopoShape::convertTogpTrsf(const Base::Matrix4D& mtrx, gp_Trsf& trsf)
 
 void TopoShape::convertToMatrix(const gp_Trsf& trsf, Base::Matrix4D& mtrx)
 {
+#if OCC_VERSION_HEX < 0x070000
     gp_Mat m = trsf._CSFDB_Getgp_Trsfmatrix();
     gp_XYZ p = trsf._CSFDB_Getgp_Trsfloc();
     Standard_Real scale = trsf._CSFDB_Getgp_Trsfscale();
@@ -488,6 +489,29 @@ void TopoShape::convertToMatrix(const gp_Trsf& trsf, Base::Matrix4D& mtrx)
     mtrx[0][3] = p._CSFDB_Getgp_XYZx();
     mtrx[1][3] = p._CSFDB_Getgp_XYZy();
     mtrx[2][3] = p._CSFDB_Getgp_XYZz();
+#else
+    gp_Mat m = trsf.HVectorialPart();
+    gp_XYZ p = trsf.TranslationPart();
+    Standard_Real scale = trsf.ScaleFactor();
+
+    // set Rotation matrix
+    mtrx[0][0] = scale * m.Value(1,1);
+    mtrx[0][1] = scale * m.Value(1,2);
+    mtrx[0][2] = scale * m.Value(1,3);
+
+    mtrx[1][0] = scale * m.Value(2,1);
+    mtrx[1][1] = scale * m.Value(2,2);
+    mtrx[1][2] = scale * m.Value(2,3);
+
+    mtrx[2][0] = scale * m.Value(3,1);
+    mtrx[2][1] = scale * m.Value(3,2);
+    mtrx[2][2] = scale * m.Value(3,3);
+
+    // set pos vector
+    mtrx[0][3] = p.X();
+    mtrx[1][3] = p.Y();
+    mtrx[2][3] = p.Z();
+#endif
 }
 
 void TopoShape::setTransform(const Base::Matrix4D& rclTrf)

@@ -1689,11 +1689,19 @@ PyObject* TopoShapePy::proximity(PyObject *args)
     PyObject* overlappssindex1 = PyList_New(0);
     PyObject* overlappssindex2 = PyList_New(0);
 
+#if OCC_VERSION_HEX >= 0x070000
+    for (BRepExtrema_MapOfIntegerPackedMapOfInteger::Iterator anIt1 (proximity.OverlapSubShapes1()); anIt1.More(); anIt1.Next()) {
+#else
     for (BRepExtrema_OverlappedSubShapes::Iterator anIt1 (proximity.OverlapSubShapes1()); anIt1.More(); anIt1.Next()) {
+#endif
         //PyList_Append(overlappss1, new TopoShapeFacePy(new TopoShape(proximity.GetSubShape1 (anIt1.Key()))));
         PyList_Append(overlappssindex1,PyInt_FromLong(anIt1.Key()+1));
     }
+#if OCC_VERSION_HEX >= 0x070000
+    for (BRepExtrema_MapOfIntegerPackedMapOfInteger::Iterator anIt2 (proximity.OverlapSubShapes2()); anIt2.More(); anIt2.Next()) {
+#else
     for (BRepExtrema_OverlappedSubShapes::Iterator anIt2 (proximity.OverlapSubShapes2()); anIt2.More(); anIt2.Next()) {
+#endif
         //PyList_Append(overlappss2, new TopoShapeFacePy(new TopoShape(proximity.GetSubShape2 (anIt2.Key()))));
         PyList_Append(overlappssindex2,PyInt_FromLong(anIt2.Key()+1));
     }
